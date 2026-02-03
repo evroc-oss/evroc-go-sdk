@@ -110,7 +110,7 @@ jobs:
           go build -o example-${{ matrix.example }} .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: example-${{ matrix.example }}
           path: examples/${{ matrix.example }}/example-${{ matrix.example }}
@@ -134,7 +134,7 @@ jobs:
           go build -o evroc-login .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: evroc-login
           path: cmd/evroc-login/evroc-login
