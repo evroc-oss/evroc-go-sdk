@@ -1,0 +1,171 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on semantic version tags like v0.1.0, v1.2.3, etc.
+
+permissions:
+  contents: write
+  packages: read
+  id-token: write  # For potential future signing with Cosign
+
+jobs:
+  # Build and test the Go module
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Verify module
+        run: go mod verify
+
+      - name: Run tests
+        run: |
+          go test -v -race -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+
+      - name: Build all packages
+        run: go build ./...
+
+      - name: Build all examples
+        run: |
+          for example in examples/*/; do
+            if [ -f "$example/main.go" ]; then
+              echo "Building example: $example"
+              cd "$example"
+              go build -o "$(basename $example)" .
+              cd - > /dev/null
+            fi
+          done
+
+      - name: Build evroc-login tool
+        run: |
+          cd cmd/evroc-login
+          go build -o evroc-login .
+
+  # Create GitHub Release
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION_NO_V=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          REPO=${{ github.repository }}
+
+          # Extract changelog for this version
+          if grep -q "## \[${VERSION}\]" CHANGELOG.md 2>/dev/null; then
+            NOTES=$(sed -n "/## \[${VERSION}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+          elif grep -q "## ${VERSION}" CHANGELOG.md 2>/dev/null; then
+            NOTES=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | sed '$d')
+          else
+            NOTES="Release ${VERSION}
+
+          See [CHANGELOG.md](https://github.com/${REPO}/blob/main/CHANGELOG.md) for details."
+          fi
+
+          # Append installation and documentation info
+          cat >> release_notes.txt <<EOF
+          ${NOTES}
+
+          ## Installation
+
+          \`\`\`bash
+          go get github.com/evroc-oss/evroc-go-sdk@${VERSION}
+          \`\`\`
+
+          ## Documentation
+
+          - [API Documentation](https://pkg.go.dev/github.com/evroc-oss/evroc-go-sdk@${VERSION})
+          - [README](https://github.com/${REPO}/blob/main/README.md)
+          - [Examples](https://github.com/${REPO}/tree/main/examples)
+          - [Authentication Guide](https://github.com/${REPO}/blob/main/docs/authentication.md)
+
+          ## Package
+
+          This release is available on [pkg.go.dev](https://pkg.go.dev/github.com/evroc-oss/evroc-go-sdk@${VERSION}).
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Verify Go module publication
+  verify-module:
+    name: Verify Module Publication
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Wait for pkg.go.dev indexing
+        run: |
+          echo "Waiting for pkg.go.dev to index the new version..."
+          echo "This may take a few minutes."
+          sleep 60
+
+      - name: Verify module is available
+        run: |
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          echo "Attempting to fetch module..."
+
+          # Try to get the module (this will also trigger pkg.go.dev indexing)
+          go install github.com/evroc-oss/evroc-go-sdk/cmd/evroc-login@${VERSION} || true
+
+          echo ""
+          echo "Module should be available at:"
+          echo "https://pkg.go.dev/github.com/evroc-oss/evroc-go-sdk@${VERSION}"

@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Check that go.mod is tidy
+  go-mod-tidy:
+    name: Go Mod Tidy Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Check go.mod is tidy
+        run: |
+          go version
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+          go mod verify
+
+  # Lint Go code
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.6
+          args: --timeout=5m
+
+  # Run tests
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Run tests
+        run: |
+          go version
+          go test -v -race -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: false
+
+  # Build all packages
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build all packages
+        run: |
+          go version
+          go build ./...
+
+  # Build examples
+  build-examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [simple, create-vm, compute, networking, storage, iam, labels]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build example
+        run: |
+          cd examples/${{ matrix.example }}
+          go build -o example-${{ matrix.example }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-${{ matrix.example }}
+          path: examples/${{ matrix.example }}/example-${{ matrix.example }}
+          retention-days: 7
+
+  # Build evroc-login tool
+  build-login-tool:
+    name: Build OAuth Login Tool
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build evroc-login
+        run: |
+          cd cmd/evroc-login
+          go build -o evroc-login .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evroc-login
+          path: cmd/evroc-login/evroc-login
+          retention-days: 7
