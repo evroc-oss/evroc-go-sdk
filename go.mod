@@ -1,13 +1,13 @@
 module github.com/evroc-oss/evroc-go-sdk
 
-go 1.24
+go 1.24.0
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
 require (
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/prometheus/client_golang v1.20.5
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.35.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
