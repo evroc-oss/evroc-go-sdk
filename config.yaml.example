@@ -1,0 +1,19 @@
+# evroc Go SDK Configuration
+#
+# Copy this file to config.yaml and fill in your credentials.
+# Environment variables override these values.
+
+# Authentication configuration
+auth:
+  # REQUIRED fields
+  username: "your-username@evroc.com"                      # REQUIRED: Your evroc robot/service account email
+  password: "your-password"                                # REQUIRED: OAuth2 password
+
+# Context
+context:
+  # REQUIRED fields
+  project: "your-project-id"                               # REQUIRED: Project ID / Resource Group ID (UUID format)
+  region: "your-region"                                    # REQUIRED: Region (e.g., se-sto)
+
+  # Optional fields
+  organization: "your-org-id"                              # Optional: Organization ID (only needed for IAM project creation)

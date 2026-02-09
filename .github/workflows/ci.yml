@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  # Check that go.mod is tidy
+  go-mod-tidy:
+    name: Go Mod Tidy Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: Check go.mod is tidy
+        run: |
+          go version
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+          go mod verify
+
+  # Lint Go code
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v7.1.0
+        with:
+          version: v2.8.0
+          args: --timeout=5m
+
+  # Run tests
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: Run tests
+        run: |
+          PACKAGES=$(go list ./... | grep -v '/examples/' | grep -v '/internal/codegen' | grep -v '/cmd/')
+          go test -v -race -coverprofile=coverage.out $PACKAGES
+
+      - name: Coverage report
+        run: go tool cover -func=coverage.out
+
+  # Build all packages
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: Build all packages
+        run: go build ./...
+
+  # Build OAuth login tool
+  build-login-tool:
+    name: Build Login Tool
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: Build evroc-login
+        run: |
+          cd cmd/evroc-login
+          go build -o evroc-login .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: evroc-login
+          path: cmd/evroc-login/evroc-login
+          retention-days: 7
+
+  # Build all examples
+  build-examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [compute, context-and-retries, create-vm, hotswap-disk, iam, k3s-cluster, labels, metrics, networking, storage, vm-backup-to-storage, web-server]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version: '1.24'
+
+      - name: Build example
+        run: |
+          cd examples/${{ matrix.example }}
+          go build -o example-${{ matrix.example }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: example-${{ matrix.example }}
+          path: examples/${{ matrix.example }}/example-${{ matrix.example }}
+          retention-days: 7
