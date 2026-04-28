@@ -1,0 +1,61 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+/codegen
+/internal/codegen/codegen
+example-cli
+
+# Example binaries
+examples/*/main
+examples/*/*-example
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.txt
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Configuration files with secrets
+config.yaml
+.env
+*.env
+.envrc
+
+# Generated OpenAPI bundles (can be regenerated)
+openapi-bundled/
+
+# Build artifacts
+*.log
+tmp/
+temp/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+api
+examples/internal/
+examples/authentication/authentication
