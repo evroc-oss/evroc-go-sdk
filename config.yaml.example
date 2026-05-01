@@ -1,0 +1,22 @@
+# evroc Go SDK Configuration
+#
+# Copy this file to config.yaml and fill in your credentials.
+# Environment variables override these values.
+
+# Authentication configuration
+auth:
+  # Option 1: Username/Password authentication
+  username: "your-username@evroc.com"                      # REQUIRED: Your evroc robot/service account email
+  password: "your-password"                                # REQUIRED: OAuth2 password
+
+  # Option 2: Refresh token authentication (alternative to username/password)
+  # refresh_token: "your-refresh-token"                    # OAuth2 refresh token (use cmd/login to obtain)
+
+# Context
+context:
+  # REQUIRED fields
+  project: "your-project-id"                               # REQUIRED: Project ID / Resource Group ID (UUID format)
+  region: "your-region"                                    # REQUIRED: Region (e.g., se-sto)
+
+  # Optional fields
+  organization: "your-org-id"                              # Optional: Organization ID (only needed for IAM project creation)

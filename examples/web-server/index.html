@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>evroc Web Server</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 { color: #2563eb; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>✓ Web Server Running</h1>
+    <p>Your evroc virtual machine is successfully serving HTTP traffic.</p>
+
+    <h3>Instance Details</h3>
+    <ul>
+        <li>VM: <code>{{.VMName}}</code></li>
+        <li>Type: <code>{{.InstanceType}}</code></li>
+        <li>IP: <code>{{.IPAddress}}</code></li>
+    </ul>
+
+    <h3>SSH Access</h3>
+    <pre>ssh ubuntu@{{.IPAddress}}</pre>
+</body>
+</html>

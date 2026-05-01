@@ -1,0 +1,77 @@
+# golangci-lint configuration for evroc Go SDK
+# Focus: correctness and security over strict style enforcement
+
+version: "2"
+run:
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  timeout: 5m
+
+linters:
+  enable:
+    # Critical: Error checking
+    - errcheck          # Check for unchecked errors
+    - errorlint         # Correct use of error wrapping
+
+    # Critical: Bug detection
+    - staticcheck       # Advanced static analysis
+    - govet            # Standard Go vet checks
+    - ineffassign      # Detect ineffectual assignments
+    - unused           # Detect unused code
+
+    # Context handling
+    - noctx            # Require context in http.Request
+    - contextcheck     # Check context.Context usage
+
+    # Code quality
+    - misspell         # Fix common spelling mistakes
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      # Allow ignoring errors in specific safe cases
+      exclude-functions:
+        - (io.Closer).Close
+        - (io.Writer).Write  # hash.Write never returns an error
+
+    staticcheck:
+      checks: ["all"]
+
+    gosec:
+      excludes:
+        - G304  # File inclusion - config file reading is safe
+
+    govet:
+      enable-all: true
+      disable:
+        - shadow       # Shadow variables sometimes OK
+        - fieldalignment  # Struct field alignment - too pedantic
+
+  exclusions:
+    generated: lax
+    paths:
+      - examples/
+      - internal/codegen/
+      - vendor
+    rules:
+      # Exclude generated code
+      - linters:
+          - all
+        path: zz_generated\.deepcopy\.go
+
+      # Allow test helpers to ignore errors and use net.Listen
+      - linters:
+          - errcheck
+          - gosec
+          - noctx
+        path: _test\.go
+
+      # Allow generated code patterns
+      - linters:
+          - all
+        path: types/.*/generated\.go
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
