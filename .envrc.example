@@ -1,0 +1,28 @@
+# evroc Go SDK - Environment Configuration for E2E Tests
+# Copy this file to .envrc and fill in your credentials
+# Then run: direnv allow .
+
+# Authentication - Choose ONE method:
+
+# Method 1: API Token (Recommended)
+export EVROC_TOKEN="your-api-token-here"
+
+# Method 2: Refresh Token
+# export EVROC_REFRESH_TOKEN="your-refresh-token-here"
+
+# Method 3: Username & Password
+# export EVROC_USERNAME="your-username"
+# export EVROC_PASSWORD="your-password"
+
+# Required: Project and Region
+export EVROC_PROJECT="your-project-id"
+export EVROC_REGION="se-sto"  # Optional, defaults to se-sto
+
+# Optional: Organization (for org-level operations)
+# export EVROC_ORGANIZATION="your-org-id"
+
+# Optional: Custom API endpoint (for development/testing)
+# export EVROC_API_URL="https://api.evroc.com"
+
+# Enable E2E tests
+export E2E=1
