@@ -27,7 +27,7 @@ jobs:
           go-version: '1.24'
 
       - name: Cache Go modules
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ~/.cache/go-build
@@ -139,7 +139,7 @@ jobs:
           upload-artifact: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@053f9b74638557590800a301da1ba82351507e2c # v3.8.1
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
 
       - name: Sign SBOM with Cosign
         run: |
