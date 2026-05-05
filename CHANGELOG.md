@@ -5,6 +5,13 @@ All notable changes to the evroc Go SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.1] - 2026-05-05
+
+### Fixed
+- Fix LICENSE file typo preventing pkg.go.dev documentation display
+
 ## [0.4.0] - 2026-05-01
 Public release
 
@@ -51,3 +58,4 @@ Public release
 
 [Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
+[0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
