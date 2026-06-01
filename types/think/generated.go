@@ -101,7 +101,7 @@ type BaseMetadataResponse struct {
 	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
 	Generation int64 `json:"generation"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -137,7 +137,7 @@ type GlobalMetadataResponse struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -185,7 +185,7 @@ type GlobalProjectMetadataResponse struct {
 	// Organization Organization associated with the resource.
 	Organization *string `json:"organization,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -344,7 +344,7 @@ type RegionalMetadataResponse struct {
 	// Region Region identifier
 	Region *string `json:"region,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// SystemLabels Map of string keys and string values owned and managed by evroc, and automatically set by the system. SystemLabels are read-only and can be referenced by label selectors.

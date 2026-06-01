@@ -95,7 +95,7 @@ func (b *SecurityGroupBuilder) AllowIngressRule(ruleName string, protocol string
 	proto := networking.SecurityGroupSpecRulesItemProtocol(protocol)
 	rule := networking.SecurityGroupSpecRulesItem{
 		Name:      &ruleName,
-		Direction: networking.SecurityGroupSpecRulesItemDirectionIngress,
+		Direction: networking.Ingress,
 		Protocol:  &proto,
 	}
 
@@ -110,6 +110,7 @@ func (b *SecurityGroupBuilder) AllowIngressRule(ruleName string, protocol string
 			Address          *networking.SecurityGroupSpecRulesItemAddress `json:"address,omitempty"`
 			SecurityGroupRef *string                                       `json:"securityGroupRef,omitempty"`
 			SubnetRef        *string                                       `json:"subnetRef,omitempty"`
+			VpcRef           *string                                       `json:"vpcRef,omitempty"`
 		}{
 			Address: &networking.SecurityGroupSpecRulesItemAddress{
 				IpAddressOrCIDR: source,
@@ -126,7 +127,7 @@ func (b *SecurityGroupBuilder) AllowEgressRule(ruleName string, protocol string,
 	proto := networking.SecurityGroupSpecRulesItemProtocol(protocol)
 	rule := networking.SecurityGroupSpecRulesItem{
 		Name:      &ruleName,
-		Direction: networking.SecurityGroupSpecRulesItemDirectionEgress,
+		Direction: networking.Egress,
 		Protocol:  &proto,
 	}
 
@@ -141,6 +142,7 @@ func (b *SecurityGroupBuilder) AllowEgressRule(ruleName string, protocol string,
 			Address          *networking.SecurityGroupSpecRulesItemAddress `json:"address,omitempty"`
 			SecurityGroupRef *string                                       `json:"securityGroupRef,omitempty"`
 			SubnetRef        *string                                       `json:"subnetRef,omitempty"`
+			VpcRef           *string                                       `json:"vpcRef,omitempty"`
 		}{
 			Address: &networking.SecurityGroupSpecRulesItemAddress{
 				IpAddressOrCIDR: destination,
@@ -158,7 +160,7 @@ func (b *SecurityGroupBuilder) AllowIngressFromSecurityGroup(ruleName string, pr
 	proto := networking.SecurityGroupSpecRulesItemProtocol(protocol)
 	rule := networking.SecurityGroupSpecRulesItem{
 		Name:      &ruleName,
-		Direction: networking.SecurityGroupSpecRulesItemDirectionIngress,
+		Direction: networking.Ingress,
 		Protocol:  &proto,
 	}
 
@@ -175,6 +177,7 @@ func (b *SecurityGroupBuilder) AllowIngressFromSecurityGroup(ruleName string, pr
 		Address          *networking.SecurityGroupSpecRulesItemAddress `json:"address,omitempty"`
 		SecurityGroupRef *string                                       `json:"securityGroupRef,omitempty"`
 		SubnetRef        *string                                       `json:"subnetRef,omitempty"`
+		VpcRef           *string                                       `json:"vpcRef,omitempty"`
 	}{
 		SecurityGroupRef: &sgRef,
 	}
@@ -189,7 +192,7 @@ func (b *SecurityGroupBuilder) AllowIngressFromSubnet(ruleName string, protocol 
 	proto := networking.SecurityGroupSpecRulesItemProtocol(protocol)
 	rule := networking.SecurityGroupSpecRulesItem{
 		Name:      &ruleName,
-		Direction: networking.SecurityGroupSpecRulesItemDirectionIngress,
+		Direction: networking.Ingress,
 		Protocol:  &proto,
 	}
 
@@ -206,6 +209,7 @@ func (b *SecurityGroupBuilder) AllowIngressFromSubnet(ruleName string, protocol 
 		Address          *networking.SecurityGroupSpecRulesItemAddress `json:"address,omitempty"`
 		SecurityGroupRef *string                                       `json:"securityGroupRef,omitempty"`
 		SubnetRef        *string                                       `json:"subnetRef,omitempty"`
+		VpcRef           *string                                       `json:"vpcRef,omitempty"`
 	}{
 		SubnetRef: &subnetRef,
 	}

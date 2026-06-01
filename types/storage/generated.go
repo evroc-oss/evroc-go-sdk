@@ -44,6 +44,43 @@ const (
 	BucketStatusConditionsItemStatusUnknown BucketStatusConditionsItemStatus = "Unknown"
 )
 
+// Defines values for FilestoreSpecProtocol.
+const (
+	FilestoreSpecProtocolNFS FilestoreSpecProtocol = "NFS"
+)
+
+// Defines values for FilestoreSpecNfsVersion.
+const (
+	FilestoreSpecNfsVersionV41 FilestoreSpecNfsVersion = "V4.1"
+)
+
+// Defines values for FilestoreStatusProtocol.
+const (
+	FilestoreStatusProtocolNFS FilestoreStatusProtocol = "NFS"
+)
+
+// Defines values for FilestoreStatusStatus.
+const (
+	Available    FilestoreStatusStatus = "Available"
+	Failed       FilestoreStatusStatus = "Failed"
+	Pending      FilestoreStatusStatus = "Pending"
+	Provisioning FilestoreStatusStatus = "Provisioning"
+	Reconciling  FilestoreStatusStatus = "Reconciling"
+	Released     FilestoreStatusStatus = "Released"
+)
+
+// Defines values for FilestoreStatusConditionsItemStatus.
+const (
+	False   FilestoreStatusConditionsItemStatus = "False"
+	True    FilestoreStatusConditionsItemStatus = "True"
+	Unknown FilestoreStatusConditionsItemStatus = "Unknown"
+)
+
+// Defines values for FilestoreStatusNfsVersion.
+const (
+	FilestoreStatusNfsVersionV41 FilestoreStatusNfsVersion = "V4.1"
+)
+
 // BaseMetadataResponse Common metadata fields for all resource responses.
 type BaseMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -52,7 +89,7 @@ type BaseMetadataResponse struct {
 	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
 	Generation int64 `json:"generation"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -81,6 +118,22 @@ type Bucket struct {
 // BucketList defines model for BucketList.
 type BucketList struct {
 	Items *[]Bucket `json:"items,omitempty"`
+}
+
+// BucketPatchRequest defines model for BucketPatchRequest.
+type BucketPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
+	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
+
+	// Spec BucketSpec defines the desired state of Bucket.
+	Spec *BucketSpec `json:"spec,omitempty"`
 }
 
 // BucketRequest defines model for BucketRequest.
@@ -121,6 +174,22 @@ type BucketServiceAccount struct {
 // BucketServiceAccountList defines model for BucketServiceAccountList.
 type BucketServiceAccountList struct {
 	Items *[]BucketServiceAccount `json:"items,omitempty"`
+}
+
+// BucketServiceAccountPatchRequest defines model for BucketServiceAccountPatchRequest.
+type BucketServiceAccountPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
+	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
+
+	// Spec BucketServiceAccountSpec defines the desired state of BucketServiceAccount.
+	Spec *BucketServiceAccountSpec `json:"spec,omitempty"`
 }
 
 // BucketServiceAccountRequest defines model for BucketServiceAccountRequest.
@@ -305,6 +374,173 @@ type Error struct {
 	Reason string `json:"reason"`
 }
 
+// Filestore defines model for Filestore.
+type Filestore struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for regional project-scoped resource
+	Metadata RegionalMetadataResponse `json:"metadata"`
+
+	// Spec FileStoreSpec defines the desired state of FileStore.
+	Spec FilestoreSpec `json:"spec"`
+
+	// Status FileStoreStatus defines the observed state of FileStore.
+	Status FilestoreStatus `json:"status"`
+}
+
+// FilestoreList defines model for FilestoreList.
+type FilestoreList struct {
+	Items *[]Filestore `json:"items,omitempty"`
+}
+
+// FilestorePatchRequest defines model for FilestorePatchRequest.
+type FilestorePatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
+	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
+
+	// Spec FileStoreSpec defines the desired state of FileStore.
+	Spec *FilestoreSpec `json:"spec,omitempty"`
+}
+
+// FilestoreRequest defines model for FilestoreRequest.
+type FilestoreRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for region-scoped resource
+	Metadata RegionalMetadataRequest `json:"metadata"`
+
+	// Spec FileStoreSpec defines the desired state of FileStore.
+	Spec FilestoreSpec `json:"spec"`
+}
+
+// FilestoreSpec FileStoreSpec defines the desired state of FileStore.
+type FilestoreSpec struct {
+	// Nfs NFS holds the specific NFS configurations.
+	Nfs *FilestoreSpecNfs `json:"nfs,omitempty"`
+
+	// Placement Placement defines where the file store should be located.
+	Placement FilestoreSpecPlacement `json:"placement"`
+
+	// Protocol Protocol specifies the access protocol family.
+	Protocol FilestoreSpecProtocol `json:"protocol"`
+}
+
+// FilestoreSpecProtocol Protocol specifies the access protocol family.
+type FilestoreSpecProtocol string
+
+// FilestoreSpecNfs NFS holds the specific NFS configurations.
+type FilestoreSpecNfs struct {
+	// Version Version specifies the NFS protocol version to use.
+	Version FilestoreSpecNfsVersion `json:"version"`
+}
+
+// FilestoreSpecNfsVersion Version specifies the NFS protocol version to use.
+type FilestoreSpecNfsVersion string
+
+// FilestoreSpecPlacement Placement defines where the file store should be located.
+type FilestoreSpecPlacement struct {
+	// Zone Zone is the availability zone for the file store.
+	Zone string `json:"zone"`
+}
+
+// FilestoreStatus FileStoreStatus defines the observed state of FileStore.
+type FilestoreStatus struct {
+	// Conditions Conditions represents the state of the FileStore over time.
+	// Each condition follows the Kubernetes API conventions for a condition.
+	Conditions *[]FilestoreStatusConditionsItem `json:"conditions,omitempty"`
+
+	// Nfs NFS contains the connection details when Protocol is NFS.
+	Nfs *FilestoreStatusNfs `json:"nfs,omitempty"`
+
+	// Placement Placement is the actual placement of the file store.
+	Placement *FilestoreStatusPlacement `json:"placement,omitempty"`
+
+	// Protocol Protocol is the discriminator indicating which protocol-specific
+	// output is populated. This mirrors spec.protocol.
+	Protocol *FilestoreStatusProtocol `json:"protocol,omitempty"`
+
+	// Status Status represents the current lifecycle state.
+	Status *FilestoreStatusStatus `json:"status,omitempty"`
+}
+
+// FilestoreStatusProtocol Protocol is the discriminator indicating which protocol-specific
+// output is populated. This mirrors spec.protocol.
+type FilestoreStatusProtocol string
+
+// FilestoreStatusStatus Status represents the current lifecycle state.
+type FilestoreStatusStatus string
+
+// FilestoreStatusConditionsItem Condition contains details for one aspect of the current
+// state of this API Resource.
+type FilestoreStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status FilestoreStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// FilestoreStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type FilestoreStatusConditionsItemStatus string
+
+// FilestoreStatusNfs NFS contains the connection details when Protocol is NFS.
+type FilestoreStatusNfs struct {
+	// Endpoint Endpoint is the server IP or hostname for connection.
+	Endpoint string `json:"endpoint"`
+
+	// ExportPath ExportPath is the export path on the server.
+	ExportPath string `json:"exportPath"`
+
+	// Version Version is the NFS protocol version used.
+	Version FilestoreStatusNfsVersion `json:"version"`
+}
+
+// FilestoreStatusNfsVersion Version is the NFS protocol version used.
+type FilestoreStatusNfsVersion string
+
+// FilestoreStatusPlacement Placement is the actual placement of the file store.
+type FilestoreStatusPlacement struct {
+	// Zone Zone is the availability zone for the file store.
+	Zone string `json:"zone"`
+}
+
 // GlobalMetadataRequest Standard metadata for global resources.
 type GlobalMetadataRequest struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
@@ -321,22 +557,6 @@ type GlobalMetadataRequestPatch struct {
 
 	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// PatchRequest defines model for PatchRequest.
-type PatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec BucketServiceAccountSpec defines the desired state of BucketServiceAccount.
-	Spec *BucketServiceAccountSpec `json:"spec,omitempty"`
 }
 
 // RegionalMetadataRequest defines model for RegionalMetadataRequest.
@@ -386,7 +606,7 @@ type RegionalMetadataResponse struct {
 	// Region Region identifier
 	Region *string `json:"region,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// SystemLabels Map of string keys and string values owned and managed by evroc, and automatically set by the system. SystemLabels are read-only and can be referenced by label selectors.
@@ -434,14 +654,26 @@ type GetStorageV1ProjectsProjectIDRegionsRegionNameBucketsParams struct {
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
+// PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams defines parameters for PostStorageV1ProjectsProjectIDRegionsRegionNameFileStores.
+type PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
 // PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsJSONRequestBody defines body for PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccounts for application/json ContentType.
 type PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsJSONRequestBody = BucketServiceAccountRequest
 
 // PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountID for application/json ContentType.
-type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody = PatchRequest
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody = BucketServiceAccountPatchRequest
 
 // PostStorageV1ProjectsProjectIDRegionsRegionNameBucketsJSONRequestBody defines body for PostStorageV1ProjectsProjectIDRegionsRegionNameBuckets for application/json ContentType.
 type PostStorageV1ProjectsProjectIDRegionsRegionNameBucketsJSONRequestBody = BucketRequest
 
 // PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketID for application/json ContentType.
-type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody = PatchRequest
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody = BucketPatchRequest
+
+// PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresJSONRequestBody defines body for PostStorageV1ProjectsProjectIDRegionsRegionNameFileStores for application/json ContentType.
+type PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresJSONRequestBody = FilestoreRequest
+
+// PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreID for application/json ContentType.
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreIDJSONRequestBody = FilestorePatchRequest
