@@ -32,10 +32,10 @@ type AuthConfig struct {
 	// Client ID for OAuth2
 	ClientID string `yaml:"client_id"`
 
-	// Username for OIDC password grant
+	// Deprecated: Use ServiceAccountID + ServiceAccountSecret instead.
 	Username string `yaml:"username"`
 
-	// Password for OIDC password grant
+	// Deprecated: Use ServiceAccountID + ServiceAccountSecret instead.
 	Password string `yaml:"password"`
 
 	// Direct access token (alternative to username/password)
@@ -46,6 +46,12 @@ type AuthConfig struct {
 
 	// Optional: Scopes for OAuth2
 	Scopes []string `yaml:"scopes"`
+
+	// Service account name (the SDK derives client_id as <id>_<project>)
+	ServiceAccountID string `yaml:"service_account_id"`
+
+	// Service account secret for jwt-bearer auth (file path or base64-encoded JWK)
+	ServiceAccountSecret string `yaml:"service_account_secret"`
 }
 
 // APIConfig contains API endpoint configuration.
@@ -212,6 +218,12 @@ func (c *Config) loadFromEnv() {
 	if v := os.Getenv("EVROC_REFRESH_TOKEN"); v != "" {
 		c.Auth.RefreshToken = v
 	}
+	if v := os.Getenv("EVROC_SERVICE_ACCOUNT_ID"); v != "" {
+		c.Auth.ServiceAccountID = v
+	}
+	if v := os.Getenv("EVROC_SERVICE_ACCOUNT_SECRET"); v != "" {
+		c.Auth.ServiceAccountSecret = v
+	}
 
 	// API endpoint
 	if v := os.Getenv("EVROC_API_URL"); v != "" {
@@ -232,17 +244,25 @@ func (c *Config) loadFromEnv() {
 
 // Validate checks if the configuration is valid.
 func (c *Config) Validate() error {
-	// At least one authentication method must be provided
 	hasPasswordAuth := c.Auth.Username != "" && c.Auth.Password != ""
 	hasTokenAuth := c.Auth.Token != "" || c.Auth.RefreshToken != ""
+	hasServiceAccountAuth := c.Auth.ServiceAccountSecret != "" && (c.Auth.ServiceAccountID != "" || c.Auth.ClientID != "")
 
-	if !hasPasswordAuth && !hasTokenAuth {
-		return fmt.Errorf("authentication required: provide either EVROC_TOKEN/EVROC_REFRESH_TOKEN or (EVROC_USERNAME + EVROC_PASSWORD)")
+	if !hasPasswordAuth && !hasTokenAuth && !hasServiceAccountAuth {
+		return fmt.Errorf("authentication required: provide either EVROC_TOKEN/EVROC_REFRESH_TOKEN, (EVROC_USERNAME + EVROC_PASSWORD), or (EVROC_SERVICE_ACCOUNT_ID + EVROC_SERVICE_ACCOUNT_SECRET)")
 	}
 
-	// Username and password must be together
+	// Username and password must be provided together
 	if (c.Auth.Username != "") != (c.Auth.Password != "") {
 		return fmt.Errorf("EVROC_USERNAME and EVROC_PASSWORD must be provided together")
+	}
+
+	// Service account ID and secret must be provided together
+	if c.Auth.ServiceAccountSecret != "" && c.Auth.ServiceAccountID == "" && c.Auth.ClientID == "" {
+		return fmt.Errorf("EVROC_SERVICE_ACCOUNT_ID and EVROC_SERVICE_ACCOUNT_SECRET must be provided together")
+	}
+	if c.Auth.ServiceAccountID != "" && c.Auth.ServiceAccountSecret == "" {
+		return fmt.Errorf("EVROC_SERVICE_ACCOUNT_ID and EVROC_SERVICE_ACCOUNT_SECRET must be provided together")
 	}
 
 	// Project and region are required
@@ -260,6 +280,11 @@ func (c *Config) Validate() error {
 
 // SetDefaults sets default values for optional fields.
 func (c *Config) SetDefaults() {
+	// Derive client_id for service account auth: <serviceAccountID>_<project>
+	if c.Auth.ClientID == "" && c.Auth.ServiceAccountID != "" {
+		c.Auth.ClientID = c.Auth.ServiceAccountID + "_" + c.Context.Project
+	}
+
 	// Set default client_id if not specified
 	if c.Auth.ClientID == "" {
 		c.Auth.ClientID = defaultClientID

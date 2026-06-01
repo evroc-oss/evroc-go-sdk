@@ -71,8 +71,8 @@ func WithMetrics(metrics AuthMetricsRecorder) Option {
 // NewClient creates a new authentication client.
 func NewClient(ctx context.Context, cfg config.AuthConfig, opts ...Option) (*Client, error) {
 	client := &Client{
-		username: cfg.Username,
-		password: cfg.Password,
+		username: cfg.Username, //nolint:staticcheck // deprecated but still supported
+		password: cfg.Password, //nolint:staticcheck // deprecated but still supported
 		httpClient: &http.Client{
 			Timeout: 60 * time.Second,
 			Transport: &http.Transport{
@@ -133,6 +133,16 @@ func (c *Client) buildTokenSource(ctx context.Context, cfg config.AuthConfig) er
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, c.httpClient)
 	}
 
+	// Service account auth (jwt-bearer client assertion)
+	if cfg.ServiceAccountSecret != "" {
+		ts, err := newJWTTokenSource(ctx, cfg.ClientID, cfg.TokenURL, cfg.ServiceAccountSecret, c.httpClient)
+		if err != nil {
+			return err
+		}
+		c.tokenSource = ts
+		return nil
+	}
+
 	// Token/RefreshToken path
 	if cfg.Token != "" || cfg.RefreshToken != "" {
 		var expiry time.Time
@@ -160,8 +170,8 @@ func (c *Client) buildTokenSource(ctx context.Context, cfg config.AuthConfig) er
 		return nil
 	}
 
-	// Password path
-	if cfg.Username == "" || cfg.Password == "" {
+	// Password path (deprecated)
+	if cfg.Username == "" || cfg.Password == "" { //nolint:staticcheck // deprecated but still supported
 		return fmt.Errorf("authentication required: provide either (Token/RefreshToken) or (Username + Password)")
 	}
 

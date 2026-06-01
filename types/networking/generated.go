@@ -25,16 +25,16 @@ const (
 
 // Defines values for SecurityGroupSpecRulesItemDirection.
 const (
-	SecurityGroupSpecRulesItemDirectionEgress  SecurityGroupSpecRulesItemDirection = "Egress"
-	SecurityGroupSpecRulesItemDirectionIngress SecurityGroupSpecRulesItemDirection = "Ingress"
+	Egress  SecurityGroupSpecRulesItemDirection = "Egress"
+	Ingress SecurityGroupSpecRulesItemDirection = "Ingress"
 )
 
 // Defines values for SecurityGroupSpecRulesItemProtocol.
 const (
-	SecurityGroupSpecRulesItemProtocolAll  SecurityGroupSpecRulesItemProtocol = "All"
-	SecurityGroupSpecRulesItemProtocolICMP SecurityGroupSpecRulesItemProtocol = "ICMP"
-	SecurityGroupSpecRulesItemProtocolTCP  SecurityGroupSpecRulesItemProtocol = "TCP"
-	SecurityGroupSpecRulesItemProtocolUDP  SecurityGroupSpecRulesItemProtocol = "UDP"
+	All  SecurityGroupSpecRulesItemProtocol = "All"
+	ICMP SecurityGroupSpecRulesItemProtocol = "ICMP"
+	TCP  SecurityGroupSpecRulesItemProtocol = "TCP"
+	UDP  SecurityGroupSpecRulesItemProtocol = "UDP"
 )
 
 // Defines values for SecurityGroupStatusConditionsItemStatus.
@@ -64,20 +64,6 @@ const (
 	VirtualPrivateCloudStatusConditionsItemStatusUnknown VirtualPrivateCloudStatusConditionsItemStatus = "Unknown"
 )
 
-// Defines values for PatchSpecRulesItemDirection.
-const (
-	PatchSpecRulesItemDirectionEgress  PatchSpecRulesItemDirection = "Egress"
-	PatchSpecRulesItemDirectionIngress PatchSpecRulesItemDirection = "Ingress"
-)
-
-// Defines values for PatchSpecRulesItemProtocol.
-const (
-	PatchSpecRulesItemProtocolAll  PatchSpecRulesItemProtocol = "All"
-	PatchSpecRulesItemProtocolICMP PatchSpecRulesItemProtocol = "ICMP"
-	PatchSpecRulesItemProtocolTCP  PatchSpecRulesItemProtocol = "TCP"
-	PatchSpecRulesItemProtocolUDP  PatchSpecRulesItemProtocol = "UDP"
-)
-
 // BaseMetadataResponse Common metadata fields for all resource responses.
 type BaseMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -86,7 +72,7 @@ type BaseMetadataResponse struct {
 	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
 	Generation int64 `json:"generation"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -109,29 +95,6 @@ type GlobalMetadataRequest struct {
 
 	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// GlobalMetadataRequestPatch Standard metadata for global resources used for PATCH operations.
-type GlobalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// PatchRequest defines model for PatchRequest.
-type PatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-	Spec     *PatchSpec                    `json:"spec,omitempty"`
 }
 
 // PublicIP defines model for PublicIP.
@@ -235,21 +198,6 @@ type RegionalMetadataRequest struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
-// RegionalMetadataRequestPatch defines model for RegionalMetadataRequestPatch.
-type RegionalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// Project Project identifier
-	Project *string `json:"project,omitempty"`
-
-	// Region Region identifier
-	Region *string `json:"region,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
 // RegionalMetadataResponse defines model for RegionalMetadataResponse.
 type RegionalMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -267,7 +215,7 @@ type RegionalMetadataResponse struct {
 	// Region Region identifier
 	Region *string `json:"region,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// SystemLabels Map of string keys and string values owned and managed by evroc, and automatically set by the system. SystemLabels are read-only and can be referenced by label selectors.
@@ -348,6 +296,9 @@ type SecurityGroupSpecRulesItem struct {
 
 		// SubnetRef The subnet that traffic is allowed to/from.
 		SubnetRef *string `json:"subnetRef,omitempty"`
+
+		// VpcRef The VPC that traffic is allowed to/from.
+		VpcRef *string `json:"vpcRef,omitempty"`
 	} `json:"remote"`
 }
 
@@ -588,55 +539,6 @@ type ApiVersion = string
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// PatchSpec defines model for patchSpec.
-type PatchSpec struct {
-	// Rules The rules for this security group.
-	Rules *[]PatchSpecRulesItem `json:"rules,omitempty"`
-}
-
-// PatchSpecRulesItem defines model for patchSpecRulesItem.
-type PatchSpecRulesItem struct {
-	// Direction The direction of traffic the rule applies to. Can be 'Ingress' or 'Egress'.
-	Direction *PatchSpecRulesItemDirection `json:"direction,omitempty"`
-
-	// EndPort If specified, means that the rule applies to all ports from port to endPort. Empty or '0' indicates that only
-	// port is opened (if port is specified) or all ports are opened (if port is not specified).
-	EndPort *int32 `json:"endPort,omitempty"`
-
-	// Name The name of the rule. Optional. Must be unique per security group.
-	Name *string `json:"name,omitempty"`
-
-	// Port The port the rule applies to. Empty or '0' indicates all ports.  Can only be set if the Protocol is TCP or UDP.
-	Port *int32 `json:"port,omitempty"`
-
-	// Protocol The protocol the rule applies to. Can be 'TCP', 'UDP', 'ICMP' or 'All'. Empty indicates all protocols.
-	Protocol *PatchSpecRulesItemProtocol `json:"protocol,omitempty"`
-
-	// Remote The source (for ingress) or destination (for egress) that the rule applies to.
-	Remote *struct {
-		// Address The IP address or CIDR that traffic is allowed to/from.
-		Address *PatchSpecRulesItemAddress `json:"address,omitempty"`
-
-		// SecurityGroupRef The security group that traffic is allowed to/from.
-		SecurityGroupRef *string `json:"securityGroupRef,omitempty"`
-
-		// SubnetRef The subnet that traffic is allowed to/from.
-		SubnetRef *string `json:"subnetRef,omitempty"`
-	} `json:"remote,omitempty"`
-}
-
-// PatchSpecRulesItemDirection The direction of traffic the rule applies to. Can be 'Ingress' or 'Egress'.
-type PatchSpecRulesItemDirection string
-
-// PatchSpecRulesItemProtocol The protocol the rule applies to. Can be 'TCP', 'UDP', 'ICMP' or 'All'. Empty indicates all protocols.
-type PatchSpecRulesItemProtocol string
-
-// PatchSpecRulesItemAddress The IP address or CIDR that traffic is allowed to/from.
-type PatchSpecRulesItemAddress struct {
-	// IpAddressOrCIDR The IP address or CIDR that traffic is allowed to/from. Can be any IPv4 address with any valid mask.
-	IpAddressOrCIDR *string `json:"ipAddressOrCIDR,omitempty"`
-}
-
 // GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsParams defines parameters for GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPs.
 type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
@@ -665,10 +567,10 @@ type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsP
 type PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody = PublicIPRequest
 
 // PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody defines body for PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPID for application/json ContentType.
-type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody = PatchRequest
+type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody = PublicIPRequest
 
 // PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody defines body for PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroups for application/json ContentType.
 type PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody = SecurityGroupRequest
 
 // PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody defines body for PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupID for application/json ContentType.
-type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody = PatchRequest
+type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody = SecurityGroupRequest

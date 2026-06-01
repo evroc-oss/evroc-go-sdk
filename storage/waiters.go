@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"os"
 	"time"
@@ -166,4 +167,76 @@ func (s *BucketServiceAccountsService) WaitForReady(ctx context.Context, name st
 		return nil, err
 	}
 	return result, nil
+}
+
+// WaitForAvailable polls the file store until its status is Available.
+// Returns the available file store resource.
+// Respects context cancellation and uses exponential backoff.
+// Optional WaiterOption parameters can customize polling behavior.
+func (s *FileStoresService) WaitForAvailable(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) (*storage.Filestore, error) {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "file_store"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	var result *storage.Filestore
+	err := rest.WaitFor(ctx, config, func() (bool, error) {
+		fs, err := s.Get(ctx, name)
+		if err != nil {
+			logger.Debug("file store get error during wait",
+				"fileStore", name,
+				"error", err)
+			return false, nil
+		}
+
+		status := "unknown"
+		if fs.Status.Status != nil {
+			status = string(*fs.Status.Status)
+		}
+
+		logger.Debug("file store status check",
+			"fileStore", name,
+			"status", status)
+
+		available := IsFileStoreAvailable(fs)
+		if available {
+			result = fs
+		}
+		return available, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// WaitForDeleted waits for a file store to be fully deleted.
+func (s *FileStoresService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "file_store"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
 }

@@ -159,10 +159,63 @@ func TestValidate(t *testing.T) {
 				Context: ContextConfig{
 					Project: "project",
 					Region:  "region",
-					// Organization omitted - should be optional
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "service account with ID and secret (valid)",
+			cfg: &Config{
+				Auth: AuthConfig{
+					ServiceAccountID:     "sa-test",
+					ServiceAccountSecret: "secret-key",
+				},
+				Context: ContextConfig{
+					Project: "project",
+					Region:  "region",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "service account with client_id override (valid)",
+			cfg: &Config{
+				Auth: AuthConfig{
+					ClientID:             "custom-client-id",
+					ServiceAccountSecret: "secret-key",
+				},
+				Context: ContextConfig{
+					Project: "project",
+					Region:  "region",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "service account secret without ID",
+			cfg: &Config{
+				Auth: AuthConfig{
+					ServiceAccountSecret: "secret-key",
+				},
+				Context: ContextConfig{
+					Project: "project",
+					Region:  "region",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "service account ID without secret",
+			cfg: &Config{
+				Auth: AuthConfig{
+					ServiceAccountID: "sa-test",
+				},
+				Context: ContextConfig{
+					Project: "project",
+					Region:  "region",
+				},
+			},
+			wantErr: true,
 		},
 	}
 

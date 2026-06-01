@@ -79,7 +79,7 @@ type BaseMetadataResponse struct {
 	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
 	Generation int64 `json:"generation"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -126,9 +126,8 @@ type DiskSpec struct {
 	// '/compute/global/diskImages/evroc/ubuntu-minimal.24-04.1',
 	// '/compute/global/diskImages/evroc/ubuntu.24-04.1',
 	// '/compute/global/diskImages/evroc/ubuntu.22-04.1',
-	// '/compute/global/diskImages/evroc/rocky.10-0.1',
+	// '/compute/global/diskImages/evroc/rocky.10-1.1',
 	// '/compute/global/diskImages/evroc/rocky.9-6.1',
-	// '/compute/global/diskImages/evroc/rocky.9-5.1',
 	// '/compute/global/diskImages/evroc/rocky.8-10.1',
 	// '/compute/global/diskImages/evroc/opensuse.15-6.1',
 	// '/compute/global/diskImages/evroc/opensuse.15-5.1',
@@ -258,15 +257,6 @@ type GlobalMetadataRequest struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
-// GlobalMetadataRequestPatch Standard metadata for global resources used for PATCH operations.
-type GlobalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
 // HotswapDiskAttachment defines model for HotswapDiskAttachment.
 type HotswapDiskAttachment struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -350,20 +340,6 @@ type HotswapDiskAttachmentStatusConditionsItem struct {
 
 // HotswapDiskAttachmentStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
 type HotswapDiskAttachmentStatusConditionsItemStatus string
-
-// PatchRequest defines model for PatchRequest.
-type PatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-	Spec     *VirtualMachineSpec           `json:"spec,omitempty"`
-}
 
 // PlacementGroup defines model for PlacementGroup.
 type PlacementGroup struct {
@@ -492,21 +468,6 @@ type RegionalMetadataRequest struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
-// RegionalMetadataRequestPatch defines model for RegionalMetadataRequestPatch.
-type RegionalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// Project Project identifier
-	Project *string `json:"project,omitempty"`
-
-	// Region Region identifier
-	Region *string `json:"region,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
 // RegionalMetadataResponse defines model for RegionalMetadataResponse.
 type RegionalMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -524,7 +485,7 @@ type RegionalMetadataResponse struct {
 	// Region Region identifier
 	Region *string `json:"region,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// SystemLabels Map of string keys and string values owned and managed by evroc, and automatically set by the system. SystemLabels are read-only and can be referenced by label selectors.
@@ -840,22 +801,22 @@ type GetComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesParams st
 type PostComputeV1beta1ProjectsProjectIDRegionsRegionNameDisksJSONRequestBody = DiskRequest
 
 // PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameDisksDiskIDJSONRequestBody defines body for PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameDisksDiskID for application/json ContentType.
-type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameDisksDiskIDJSONRequestBody = PatchRequest
+type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameDisksDiskIDJSONRequestBody = DiskRequest
 
 // PostComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsJSONRequestBody defines body for PostComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachments for application/json ContentType.
 type PostComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsJSONRequestBody = HotswapDiskAttachmentRequest
 
 // PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentIDJSONRequestBody defines body for PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentID for application/json ContentType.
-type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentIDJSONRequestBody = PatchRequest
+type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentIDJSONRequestBody = HotswapDiskAttachmentRequest
 
 // PostComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsJSONRequestBody defines body for PostComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroups for application/json ContentType.
 type PostComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsJSONRequestBody = PlacementGroupRequest
 
 // PatchComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupIDJSONRequestBody defines body for PatchComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupID for application/json ContentType.
-type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupIDJSONRequestBody = PatchRequest
+type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupIDJSONRequestBody = PlacementGroupRequest
 
 // PostComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesJSONRequestBody defines body for PostComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachines for application/json ContentType.
 type PostComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesJSONRequestBody = VirtualMachineRequest
 
 // PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineIDJSONRequestBody defines body for PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineID for application/json ContentType.
-type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineIDJSONRequestBody = PatchRequest
+type PatchComputeV1beta1ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineIDJSONRequestBody = VirtualMachineRequest

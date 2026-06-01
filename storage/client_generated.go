@@ -17,6 +17,7 @@ const (
 	// Resource type constants
 	resourceBucketServiceAccounts = "bucketServiceAccounts"
 	resourceBuckets               = "buckets"
+	resourceFileStores            = "fileStores"
 )
 
 // ContextProvider provides access to context configuration
@@ -43,6 +44,10 @@ type (
 	BucketList struct {
 		Items []storage.Bucket `json:"items,omitempty"`
 	}
+
+	FilestoreList struct {
+		Items []storage.Filestore `json:"items,omitempty"`
+	}
 )
 
 // NewClient creates a new storage API client with a parent context provider
@@ -62,4 +67,9 @@ func (c *Client) BucketServiceAccounts() *BucketServiceAccountsService {
 // Buckets returns the Buckets service
 func (c *Client) Buckets() *BucketsService {
 	return &BucketsService{client: c}
+}
+
+// FileStores returns the FileStores service
+func (c *Client) FileStores() *FileStoresService {
+	return &FileStoresService{client: c}
 }
