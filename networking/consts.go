@@ -13,25 +13,25 @@ import (
 // Security Group Rule Direction constants
 const (
 	// Ingress represents inbound traffic rules.
-	Ingress = string(networkingtypes.SecurityGroupSpecRulesItemDirectionIngress)
+	Ingress = string(networkingtypes.Ingress)
 
 	// Egress represents outbound traffic rules.
-	Egress = string(networkingtypes.SecurityGroupSpecRulesItemDirectionEgress)
+	Egress = string(networkingtypes.Egress)
 )
 
 // Security Group Rule Protocol constants
 const (
 	// All allows all protocols.
-	All = string(networkingtypes.SecurityGroupSpecRulesItemProtocolAll)
+	All = string(networkingtypes.All)
 
 	// TCP allows TCP protocol only.
-	TCP = string(networkingtypes.SecurityGroupSpecRulesItemProtocolTCP)
+	TCP = string(networkingtypes.TCP)
 
 	// UDP allows UDP protocol only.
-	UDP = string(networkingtypes.SecurityGroupSpecRulesItemProtocolUDP)
+	UDP = string(networkingtypes.UDP)
 
 	// ICMP allows ICMP protocol only (ping, etc.).
-	ICMP = string(networkingtypes.SecurityGroupSpecRulesItemProtocolICMP)
+	ICMP = string(networkingtypes.ICMP)
 )
 
 // Security Group Member Status constants

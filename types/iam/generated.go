@@ -43,7 +43,7 @@ type BaseMetadataResponse struct {
 	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
 	Generation int64 `json:"generation"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -88,7 +88,7 @@ type GlobalMetadataResponse struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -122,6 +122,18 @@ type GlobalProjectMetadataRequest struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
+// GlobalProjectMetadataRequestPatch defines model for GlobalProjectMetadataRequestPatch.
+type GlobalProjectMetadataRequestPatch struct {
+	// Id Unique identifier for the resource within its namespace. Immutable.
+	Id *string `json:"id,omitempty"`
+
+	// Project Project to which this resource belongs.
+	Project *string `json:"project,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
 // GlobalProjectMetadataResponse defines model for GlobalProjectMetadataResponse.
 type GlobalProjectMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -136,7 +148,7 @@ type GlobalProjectMetadataResponse struct {
 	// Organization Organization associated with the resource.
 	Organization *string `json:"organization,omitempty"`
 
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 	// Uid System-assigned unique identifier for the resource. Immutable.
@@ -164,7 +176,7 @@ type Organization struct {
 		// Id Unique identifier for the organization. Immutable.
 		Id *openapi_types.UUID `json:"id,omitempty"`
 
-		// ResourceVersion String that identifies the internal version of this object that can be used by clients to  determine when objects have changed. Any reconciliation, or system-driven status change,  can change the resourceVersion, not only a change of spec.
+		// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 		ResourceVersion *string `json:"resourceVersion,omitempty"`
 
 		// Uid System-assigned unique identifier for the resource. Immutable.
@@ -179,6 +191,20 @@ type Organization struct {
 // OrganizationList defines model for OrganizationList.
 type OrganizationList struct {
 	Items *[]Organization `json:"items,omitempty"`
+}
+
+// OrganizationPatchRequest defines model for OrganizationPatchRequest.
+type OrganizationPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind     *Kind     `json:"kind,omitempty"`
+	Metadata *Metadata `json:"metadata,omitempty"`
+
+	// Spec ProjectSpec defines the desired state of project.
+	Spec *PatchSpec `json:"spec,omitempty"`
 }
 
 // OrganizationSpec defines model for OrganizationSpec.
@@ -277,22 +303,6 @@ type OrganizationStatusQuotaUsage struct {
 // OrganizationStatusQuotaUsageGpus GPUs reports the current usage of GPUs.
 type OrganizationStatusQuotaUsageGpus map[string]int64
 
-// PatchRequest defines model for PatchRequest.
-type PatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for global resources used for PATCH operations.
-	Metadata *GlobalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec ProjectSpec defines the desired state of project.
-	Spec *PatchSpec `json:"spec,omitempty"`
-}
-
 // PermissionSet defines model for PermissionSet.
 type PermissionSet struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -313,6 +323,22 @@ type PermissionSet struct {
 // PermissionSetList defines model for PermissionSetList.
 type PermissionSetList struct {
 	Items *[]PermissionSet `json:"items,omitempty"`
+}
+
+// PermissionSetPatchRequest defines model for PermissionSetPatchRequest.
+type PermissionSetPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for global, project-scoped resource  used for PATCH operations.
+	Metadata *GlobalProjectMetadataRequestPatch `json:"metadata,omitempty"`
+
+	// Spec ProjectSpec defines the desired state of project.
+	Spec *PatchSpec `json:"spec,omitempty"`
 }
 
 // PermissionSetRequest defines model for PermissionSetRequest.
@@ -406,6 +432,22 @@ type Project struct {
 // ProjectList defines model for ProjectList.
 type ProjectList struct {
 	Items *[]Project `json:"items,omitempty"`
+}
+
+// ProjectPatchRequest defines model for ProjectPatchRequest.
+type ProjectPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for global resources used for PATCH operations.
+	Metadata *GlobalMetadataRequestPatch `json:"metadata,omitempty"`
+
+	// Spec ProjectSpec defines the desired state of project.
+	Spec *PatchSpec `json:"spec,omitempty"`
 }
 
 // ProjectRequest defines model for ProjectRequest.
@@ -507,16 +549,16 @@ type GetIamV1beta1ProjectsProjectIDPermissionSetsParams struct {
 }
 
 // PatchIamV1beta1OrganizationsOrganizationIDJSONRequestBody defines body for PatchIamV1beta1OrganizationsOrganizationID for application/json ContentType.
-type PatchIamV1beta1OrganizationsOrganizationIDJSONRequestBody = PatchRequest
+type PatchIamV1beta1OrganizationsOrganizationIDJSONRequestBody = OrganizationPatchRequest
 
 // PostIamV1beta1ProjectsJSONRequestBody defines body for PostIamV1beta1Projects for application/json ContentType.
 type PostIamV1beta1ProjectsJSONRequestBody = ProjectRequest
 
 // PatchIamV1beta1ProjectsProjectIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDJSONRequestBody = PatchRequest
+type PatchIamV1beta1ProjectsProjectIDJSONRequestBody = ProjectPatchRequest
 
 // PostIamV1beta1ProjectsProjectIDPermissionSetsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDPermissionSets for application/json ContentType.
 type PostIamV1beta1ProjectsProjectIDPermissionSetsJSONRequestBody = PermissionSetRequest
 
 // PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody = PatchRequest
+type PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody = PermissionSetPatchRequest

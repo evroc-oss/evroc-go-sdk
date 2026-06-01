@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-28
+
+### Added
+- FileStore (NFS) support in the storage API — CRUD, builder, waiters, and example
+- Service account JWT bearer authentication (`EVROC_SERVICE_ACCOUNT_ID` + `EVROC_SERVICE_ACCOUNT_SECRET`)
+
 ## [0.4.1] - 2026-05-05
 
 ### Fixed
