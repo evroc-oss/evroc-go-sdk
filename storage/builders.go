@@ -160,3 +160,65 @@ func (b *BucketServiceAccountBuilder) Create(ctx context.Context, client *Bucket
 	req := b.Build()
 	return client.Create(ctx, req)
 }
+
+// ============================================================================
+// FileStore Builder
+// ============================================================================
+
+// FileStoreBuilder provides a fluent interface for creating FileStore resources.
+type FileStoreBuilder struct {
+	id       string
+	zone     string
+	protocol storage.FilestoreSpecProtocol
+	nfs      *storage.FilestoreSpecNfs
+	labels   map[string]string
+}
+
+// NewFileStoreBuilder creates a new builder for FileStore.
+func NewFileStoreBuilder(id string, zone string) *FileStoreBuilder {
+	return &FileStoreBuilder{
+		id:       id,
+		zone:     zone,
+		protocol: storage.FilestoreSpecProtocolNFS,
+		nfs: &storage.FilestoreSpecNfs{
+			Version: storage.FilestoreSpecNfsVersionV41,
+		},
+	}
+}
+
+// WithLabels sets user-defined labels for the file store.
+func (b *FileStoreBuilder) WithLabels(labels map[string]string) *FileStoreBuilder {
+	b.labels = labels
+	return b
+}
+
+// Build creates the FilestoreRequest structure.
+func (b *FileStoreBuilder) Build() *storage.FilestoreRequest {
+	req := &storage.FilestoreRequest{
+		ApiVersion: builderAPIVersion,
+		Kind:       "FileStore",
+		Metadata: storage.RegionalMetadataRequest{
+			Id: b.id,
+		},
+		Spec: storage.FilestoreSpec{
+			Protocol: b.protocol,
+			Placement: storage.FilestoreSpecPlacement{
+				Zone: b.zone,
+			},
+			Nfs: b.nfs,
+		},
+	}
+
+	if len(b.labels) > 0 {
+		userLabels := storage.UserLabels(b.labels)
+		req.Metadata.UserLabels = &userLabels
+	}
+
+	return req
+}
+
+// Create is a convenience method that builds and creates the file store in one call.
+func (b *FileStoreBuilder) Create(ctx context.Context, client *FileStoresService) (*storage.Filestore, error) {
+	req := b.Build()
+	return client.Create(ctx, req)
+}

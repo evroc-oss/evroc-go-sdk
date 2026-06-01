@@ -15,13 +15,13 @@ func TestSecurityGroupUpdateBuilder_BuilderMethods(t *testing.T) {
 	}
 
 	// Test SetRules
-	protocol := networking.SecurityGroupSpecRulesItemProtocolTCP
+	protocol := networking.TCP
 	port := int32(80)
 	httpName := "http"
 	rules := []networking.SecurityGroupSpecRulesItem{
 		{
 			Name:      &httpName,
-			Direction: networking.SecurityGroupSpecRulesItemDirectionIngress,
+			Direction: networking.Ingress,
 			Protocol:  &protocol,
 			Port:      &port,
 		},
@@ -39,12 +39,12 @@ func TestSecurityGroupUpdateBuilder_BuilderMethods(t *testing.T) {
 	builder2 := &SecurityGroupUpdateBuilder{
 		name: "test-sg",
 	}
-	https := networking.SecurityGroupSpecRulesItemProtocolTCP
+	https := networking.TCP
 	httpsPort := int32(443)
 	httpsName := "https"
 	builder2.AddRule(networking.SecurityGroupSpecRulesItem{
 		Name:      &httpsName,
-		Direction: networking.SecurityGroupSpecRulesItemDirectionIngress,
+		Direction: networking.Ingress,
 		Protocol:  &https,
 		Port:      &httpsPort,
 	})

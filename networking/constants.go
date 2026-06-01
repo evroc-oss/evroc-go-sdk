@@ -11,10 +11,10 @@ import networkingtypes "github.com/evroc-oss/evroc-go-sdk/types/networking"
 
 // Re-export protocol constants from types for convenience
 const (
-	ProtocolTCP  = networkingtypes.SecurityGroupSpecRulesItemProtocolTCP
-	ProtocolUDP  = networkingtypes.SecurityGroupSpecRulesItemProtocolUDP
-	ProtocolICMP = networkingtypes.SecurityGroupSpecRulesItemProtocolICMP
-	ProtocolAll  = networkingtypes.SecurityGroupSpecRulesItemProtocolAll
+	ProtocolTCP  = networkingtypes.TCP
+	ProtocolUDP  = networkingtypes.UDP
+	ProtocolICMP = networkingtypes.ICMP
+	ProtocolAll  = networkingtypes.All
 )
 
 // ============================================================================
@@ -23,6 +23,6 @@ const (
 
 // Re-export direction constants from types for convenience
 const (
-	DirectionIngress = networkingtypes.SecurityGroupSpecRulesItemDirectionIngress
-	DirectionEgress  = networkingtypes.SecurityGroupSpecRulesItemDirectionEgress
+	DirectionIngress = networkingtypes.Ingress
+	DirectionEgress  = networkingtypes.Egress
 )

@@ -53,6 +53,14 @@ func IsBucketServiceAccountReady(bsa *storagetypes.BucketServiceAccount) bool {
 	return false
 }
 
+// IsFileStoreAvailable returns true if the FileStore status is Available.
+func IsFileStoreAvailable(fs *storagetypes.Filestore) bool {
+	if fs == nil || fs.Status.Status == nil {
+		return false
+	}
+	return *fs.Status.Status == storagetypes.Available
+}
+
 // ============================================================================
 // S3 Endpoint Helper
 // ============================================================================

@@ -7,7 +7,7 @@
 //   - Compute: Virtual Machines, Disks, Placement Groups
 //   - Networking: VPCs, Subnets, Security Groups, Public IPs
 //   - IAM: Organizations, Projects, Users, Permissions
-//   - Storage: Buckets, Service Accounts
+//   - Storage: Buckets, Service Accounts, File Stores
 //   - Think: Models, Instances, API Keys
 //
 // Quick Start:
@@ -31,8 +31,9 @@
 // Authentication:
 //
 // The SDK supports multiple authentication methods:
-//   - Username/Password (EVROC_USERNAME, EVROC_PASSWORD)
-//   - Bearer token (EVROC_TOKEN, EVROC_REFRESH_TOKEN)
+//   - Service Account (recommended): EVROC_SERVICE_ACCOUNT_ID + EVROC_SERVICE_ACCOUNT_SECRET
+//   - Bearer token: EVROC_TOKEN, EVROC_REFRESH_TOKEN
+//   - Username/Password (deprecated): EVROC_USERNAME, EVROC_PASSWORD
 //
 // Configuration:
 //
@@ -117,14 +118,18 @@ func WithMetrics(manager *metrics.Manager) Option {
 	}
 }
 
-// NewFromEnv creates a new evroc client using environment variables
+// NewFromEnv creates a new evroc client using environment variables.
 //
-// Required environment variables:
-//   - EVROC_USERNAME: OIDC username/email (or use EVROC_TOKEN for token auth)
-//   - EVROC_PASSWORD: OIDC password (or use EVROC_TOKEN for token auth)
-//   - EVROC_PROJECT: Project ID
+// Service account authentication (recommended):
+//   - EVROC_SERVICE_ACCOUNT_ID: Service account name
+//   - EVROC_SERVICE_ACCOUNT_SECRET: Private key (file path or base64-encoded JWK)
+//   - EVROC_PROJECT: Project name
 //   - EVROC_REGION: Region
-//   - EVROC_ORGANIZATION: Organization ID
+//
+// The client_id is derived automatically as <EVROC_SERVICE_ACCOUNT_ID>_<EVROC_PROJECT>.
+//
+// Deprecated authentication methods (username/password, bearer token) are still
+// supported — see [config.AuthConfig] for details.
 func NewFromEnv(ctx context.Context, opts ...Option) (*Client, error) {
 	cfg, err := config.Load()
 	if err != nil {
@@ -307,6 +312,7 @@ func (c *Client) IAM() *iam.Client {
 //   - Buckets
 //   - Bucket Service Accounts
 //   - Bucket Service Account Secrets
+//   - File Stores
 func (c *Client) Storage() *storage.Client {
 	return c.storage
 }
