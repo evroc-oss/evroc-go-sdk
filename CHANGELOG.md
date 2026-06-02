@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0-rc0] - 2026-06-01
+
+> **Pre-release.** This version is available to selected customers on the pre-release track.
+> The LoadBalancer API is v1alpha1 and subject to breaking changes without notice.
+
+### Added
+- **LoadBalancer API** (v1alpha1, pre-release): L4 (TCP) load balancers with listeners, backend pools, backend services, and L4 routes
+- LoadBalancer builders for type-safe resource construction
+- WaitForReady and WaitForDeleted helpers for all LoadBalancer resources
+- LoadBalancer E2E tests and CLI tool
+
 ## [0.5.0] - 2026-05-28
 
 ### Added

@@ -6,7 +6,7 @@
 
 Official Go SDK for the evroc cloud platform
 
-Go client for Compute, Networking, IAM, Storage, Quotas, and Think APIs
+Go client for Compute, Networking, IAM, Storage, Quotas, Think, and LoadBalancer APIs
 
 [![CI](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/ci.yml)
 [![Release](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/release.yml/badge.svg)](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/release.yml)
@@ -36,6 +36,7 @@ Type-safe API with automatic retries and context support.
 | **IAM** | Projects and permission sets |
 | **Quotas** | Organization and project resource quotas (read-only) |
 | **Think** | Dedicated GPU instances, AI models, API keys, shared models |
+| **LoadBalancer** | L4 load balancers, backend pools, backend services, L4 routes (**pre-release — v1alpha1, subject to breaking changes**) |
 
 ## Requirements
 

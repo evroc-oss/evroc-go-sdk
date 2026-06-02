@@ -9,7 +9,7 @@ import "fmt"
 
 // SDKVersion is the semantic version of the SDK itself.
 // Update this when releasing new SDK versions.
-const SDKVersion = "0.5.0"
+const SDKVersion = "0.6.0-rc0"
 
 // APIVersion represents an API version string (e.g., "v1alpha2", "v1beta", "v1").
 type APIVersion string
@@ -32,6 +32,9 @@ const (
 
 	// Think API version
 	ThinkAPIVersion APIVersion = "v1beta2"
+
+	// LoadBalancer API version (pre-release)
+	LoadBalancerAPIVersion APIVersion = "v1alpha1"
 )
 
 // ServiceVersions maps service names to their API versions.
@@ -42,30 +45,33 @@ var ServiceVersions = map[string]APIVersion{
 	"iam":        IAMAPIVersion,
 	"storage":    StorageAPIVersion,
 	"quotas":     QuotasAPIVersion,
-	"think":      ThinkAPIVersion,
+	"think":        ThinkAPIVersion,
+	"loadbalancer": LoadBalancerAPIVersion,
 }
 
 // APIVersionInfo contains detailed version information for all services.
 type APIVersionInfo struct {
-	SDKVersion string
-	Compute    string
-	Networking string
-	IAM        string
-	Storage    string
-	Quotas     string
-	Think      string
+	SDKVersion   string
+	Compute      string
+	Networking   string
+	IAM          string
+	Storage      string
+	Quotas       string
+	Think        string
+	LoadBalancer string
 }
 
 // Current returns the current API version information.
 func Current() APIVersionInfo {
 	return APIVersionInfo{
-		SDKVersion: SDKVersion,
-		Compute:    string(ComputeAPIVersion),
-		Networking: string(NetworkingAPIVersion),
-		IAM:        string(IAMAPIVersion),
-		Storage:    string(StorageAPIVersion),
-		Quotas:     string(QuotasAPIVersion),
-		Think:      string(ThinkAPIVersion),
+		SDKVersion:   SDKVersion,
+		Compute:      string(ComputeAPIVersion),
+		Networking:   string(NetworkingAPIVersion),
+		IAM:          string(IAMAPIVersion),
+		Storage:      string(StorageAPIVersion),
+		Quotas:       string(QuotasAPIVersion),
+		Think:        string(ThinkAPIVersion),
+		LoadBalancer: string(LoadBalancerAPIVersion),
 	}
 }
 
@@ -74,12 +80,13 @@ func (v APIVersionInfo) String() string {
 	return fmt.Sprintf(
 		"evroc Go SDK v%s\n"+
 			"API Versions:\n"+
-			"  compute:    %s\n"+
-			"  networking: %s\n"+
-			"  iam:        %s\n"+
-			"  storage:    %s\n"+
-			"  quotas:     %s\n"+
-			"  think:      %s",
+			"  compute:      %s\n"+
+			"  networking:   %s\n"+
+			"  iam:          %s\n"+
+			"  storage:      %s\n"+
+			"  quotas:       %s\n"+
+			"  think:        %s\n"+
+			"  loadbalancer: %s (pre-release)",
 		v.SDKVersion,
 		v.Compute,
 		v.Networking,
@@ -87,6 +94,7 @@ func (v APIVersionInfo) String() string {
 		v.Storage,
 		v.Quotas,
 		v.Think,
+		v.LoadBalancer,
 	)
 }
 
