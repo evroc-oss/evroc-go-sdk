@@ -24,11 +24,16 @@ func TestDiskBuilder(t *testing.T) {
 		t.Errorf("Expected Id 'test-disk', got %s", req.Metadata.Id)
 	}
 
-	// Validate disk image ref
-	if req.Spec.DiskImageRef == nil {
-		t.Error("DiskImageRef should not be nil")
-	} else if *req.Spec.DiskImageRef != "/compute/global/diskImages/evroc/ubuntu.24-04.1" {
-		t.Errorf("Expected image ref '/compute/global/diskImages/evroc/ubuntu.24-04.1', got %s", *req.Spec.DiskImageRef)
+	// Validate disk source
+	if req.Spec.Source == nil {
+		t.Error("Source should not be nil")
+	} else {
+		if req.Spec.Source.Type != "image" {
+			t.Errorf("Expected source type 'image', got %s", req.Spec.Source.Type)
+		}
+		if req.Spec.Source.DiskImageRef == nil || *req.Spec.Source.DiskImageRef != "/compute/global/diskImages/evroc/ubuntu.24-04.1" {
+			t.Errorf("Expected image ref '/compute/global/diskImages/evroc/ubuntu.24-04.1', got %v", req.Spec.Source.DiskImageRef)
+		}
 	}
 
 	// Validate disk size (WithSize should override WithSizeGB)
@@ -117,10 +122,8 @@ func TestVirtualMachineBuilder(t *testing.T) {
 		}
 	}
 
-	// Validate networking
-	if req.Spec.Networking == nil {
-		t.Error("Networking should not be nil")
-	} else {
+	// Validate networking (value type in v1beta2, always present)
+	{
 		// Validate public IP
 		if req.Spec.Networking.PublicIPv4Address == nil {
 			t.Error("PublicIPv4Address should not be nil")
@@ -259,4 +262,47 @@ func Example_hotswapDiskAttachmentBuilder() {
 	// attachmentRequest can now be passed to client.Compute().HotswapDiskAttachments().Create()
 	// This allows attaching storage to a VM without stopping it
 	_ = attachmentRequest
+}
+
+func TestSnapshotBuilder(t *testing.T) {
+	req := NewSnapshotBuilder("test-snap").
+		WithDiskRef("/compute/projects/p/regions/r/disks/my-disk").
+		Build()
+
+	if req.Kind != "Snapshot" {
+		t.Errorf("Expected Kind 'Snapshot', got %s", req.Kind)
+	}
+	if req.Metadata.Id != "test-snap" {
+		t.Errorf("Expected Id 'test-snap', got %s", req.Metadata.Id)
+	}
+	if req.Spec.DiskRef == nil || *req.Spec.DiskRef != "/compute/projects/p/regions/r/disks/my-disk" {
+		t.Errorf("Expected disk ref, got %v", req.Spec.DiskRef)
+	}
+}
+
+func TestDiskBuilderWithSnapshot(t *testing.T) {
+	req := NewDiskBuilder("restore-disk").
+		WithSnapshot("/compute/projects/p/regions/r/snapshots/my-snap").
+		WithSizeGB(100).
+		WithZone("a").
+		Build()
+
+	if req.Spec.Source == nil {
+		t.Fatal("Source should not be nil")
+	}
+	if req.Spec.Source.Type != "snapshot" {
+		t.Errorf("Expected source type 'snapshot', got %s", req.Spec.Source.Type)
+	}
+	if req.Spec.Source.SnapshotRef == nil || *req.Spec.Source.SnapshotRef != "/compute/projects/p/regions/r/snapshots/my-snap" {
+		t.Errorf("Expected snapshot ref, got %v", req.Spec.Source.SnapshotRef)
+	}
+	if req.Spec.Source.DiskImageRef != nil {
+		t.Error("DiskImageRef should be nil when using snapshot source")
+	}
+}
+
+func TestIsSnapshotReady(t *testing.T) {
+	if IsSnapshotReady(nil) {
+		t.Error("nil snapshot should not be ready")
+	}
 }

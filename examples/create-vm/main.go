@@ -98,6 +98,7 @@ func main() {
 		WithPublicIP(pubIP.Ref()).                                       // Use the public IP we just created
 		WithSecurityGroup(client.Networking().SecurityGroupRef(sgName)). // Pre-existing SG - construct ref from name
 		WithSSHKey(sshPublicKey).
+		WithSubnet(client.Compute().DefaultSubnetRef(zone)).
 		WithZone(zone).
 		Build()
 

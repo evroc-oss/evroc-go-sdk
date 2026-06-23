@@ -7,10 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.1] - 2026-06-17
+## [0.6.0] - 2026-06-18
+
+### Added
+- **LoadBalancer API** (v1alpha1): L4 load balancers, backend pools/services, L4 routes — builders, waiters, helpers
+- **Snapshots**: create disks from snapshots, full CRUD, waiters
+- **VPC and Subnet CRUD**: create, delete, patch — previously read-only
+- VM dual-stack networking: `WithDualStack()`, `WithSubnet()`
+- Auto-default `vpcRef` on SecurityGroup and `subnetRef` on VM create
+- Label filtering helpers (`filter` package)
+- Update builders for IAM, Think, HotswapDiskAttachment
+
+### Changed
+- Compute and Networking APIs upgraded from v1beta1 to v1beta2
 
 ### Fixed
-- `RemovePublicIP()` now correctly clears the public IP reference from a VM — previously `omitempty` dropped the field from the PATCH payload, causing the API to silently ignore the removal
+- `RemovePublicIP()` now correctly clears the public IP reference from a VM
 
 ## [0.5.0] - 2026-05-28
 

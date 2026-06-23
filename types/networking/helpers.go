@@ -40,3 +40,4 @@ func (sg *SecurityGroup) Ref() SecurityGroupRef {
 		*sg.Metadata.Project, *sg.Metadata.Region, sg.Metadata.Id)
 	return SecurityGroupRef(fqid)
 }
+

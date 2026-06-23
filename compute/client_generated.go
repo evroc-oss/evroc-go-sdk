@@ -12,12 +12,13 @@ import (
 )
 
 const (
-	apiVersion = "v1beta1"
+	apiVersion = "v1beta2"
 
 	// Resource type constants
 	resourceDisks                  = "disks"
 	resourceHotswapDiskAttachments = "hotswapDiskAttachments"
 	resourcePlacementGroups        = "placementGroups"
+	resourceSnapshots              = "snapshots"
 	resourceVirtualMachines        = "virtualMachines"
 )
 
@@ -50,6 +51,10 @@ type (
 		Items []compute.PlacementGroup `json:"items,omitempty"`
 	}
 
+	SnapshotList struct {
+		Items []compute.Snapshot `json:"items,omitempty"`
+	}
+
 	VirtualMachineList struct {
 		Items []compute.VirtualMachine `json:"items,omitempty"`
 	}
@@ -77,6 +82,11 @@ func (c *Client) HotswapDiskAttachments() *HotswapDiskAttachmentsService {
 // PlacementGroups returns the PlacementGroups service
 func (c *Client) PlacementGroups() *PlacementGroupsService {
 	return &PlacementGroupsService{client: c}
+}
+
+// Snapshots returns the Snapshots service
+func (c *Client) Snapshots() *SnapshotsService {
+	return &SnapshotsService{client: c}
 }
 
 // VirtualMachines returns the VirtualMachines service

@@ -17,28 +17,26 @@ const builderAPIVersion = "compute/" + apiVersion
 
 // Default values for compute resource builders
 const (
-	// DefaultDiskSizeGB is the default disk size in GB when not specified
-	DefaultDiskSizeGB = 10
 	// DefaultVMInstanceType is the default VM compute profile when not specified
 	DefaultVMInstanceType = "a1a.xs"
 )
 
 // DiskBuilder provides a fluent interface for creating Disk resources.
 type DiskBuilder struct {
-	id         string
-	image      string
-	sizeAmount int32
-	sizeUnit   string
-	zone       string
-	labels     map[string]string
+	id          string
+	image       string
+	snapshotRef string
+	sizeAmount  int32
+	sizeUnit    string
+	zone        string
+	labels      map[string]string
 }
 
-// NewDiskBuilder creates a new DiskBuilder with sensible defaults.
+// NewDiskBuilder creates a new DiskBuilder.
+// If no size is set, the API uses the disk image's default size.
 func NewDiskBuilder(id string) *DiskBuilder {
 	return &DiskBuilder{
-		id:         id,
-		sizeAmount: DefaultDiskSizeGB,
-		sizeUnit:   "GB",
+		id: id,
 	}
 }
 
@@ -85,10 +83,18 @@ func (b *DiskBuilder) Build() *compute.DiskRequest {
 		},
 	}
 
-	// Add optional image
+	// Add source (image, snapshot, or blank)
 	if b.image != "" {
 		imageRef := "/compute/global/diskImages/evroc/" + b.image
-		diskReq.Spec.DiskImageRef = &imageRef
+		diskReq.Spec.Source = &compute.DiskSpecSource{
+			Type:         compute.DiskSpecSourceTypeImage,
+			DiskImageRef: &imageRef,
+		}
+	} else if b.snapshotRef != "" {
+		diskReq.Spec.Source = &compute.DiskSpecSource{
+			Type:        compute.DiskSpecSourceTypeSnapshot,
+			SnapshotRef: &b.snapshotRef,
+		}
 	}
 
 	// Add custom disk size if specified
@@ -111,10 +117,53 @@ func (b *DiskBuilder) Build() *compute.DiskRequest {
 	return diskReq
 }
 
+// WithSnapshot sets the disk to be created from a snapshot.
+func (b *DiskBuilder) WithSnapshot(snapshotRef string) *DiskBuilder {
+	b.snapshotRef = snapshotRef
+	b.image = ""
+	return b
+}
+
 // Create is a convenience method that builds and creates the disk in one call.
 func (b *DiskBuilder) Create(ctx context.Context, client *DisksService) (*compute.Disk, error) {
 	diskReq := b.Build()
 	return client.Create(ctx, diskReq)
+}
+
+// SnapshotBuilder provides a fluent interface for creating Snapshot resources.
+type SnapshotBuilder struct {
+	id      string
+	diskRef string
+}
+
+// NewSnapshotBuilder creates a new SnapshotBuilder.
+func NewSnapshotBuilder(id string) *SnapshotBuilder {
+	return &SnapshotBuilder{id: id}
+}
+
+// WithDiskRef sets the source disk reference for the snapshot.
+func (b *SnapshotBuilder) WithDiskRef(diskRef string) *SnapshotBuilder {
+	b.diskRef = diskRef
+	return b
+}
+
+// Build creates the SnapshotRequest structure ready for the Create API call.
+func (b *SnapshotBuilder) Build() *compute.SnapshotRequest {
+	return &compute.SnapshotRequest{
+		ApiVersion: compute.ApiVersion(builderAPIVersion),
+		Kind:       "Snapshot",
+		Metadata: compute.RegionalMetadataRequest{
+			Id: b.id,
+		},
+		Spec: compute.SnapshotSpec{
+			DiskRef: &b.diskRef,
+		},
+	}
+}
+
+// Create is a convenience method that builds and creates the snapshot in one call.
+func (b *SnapshotBuilder) Create(ctx context.Context, client *SnapshotsService) (*compute.Snapshot, error) {
+	return client.Create(ctx, b.Build())
 }
 
 // VirtualMachineBuilder provides a fluent interface for creating VirtualMachine resources.
@@ -124,6 +173,8 @@ type VirtualMachineBuilder struct {
 	vmSize         string
 	publicIP       PublicIPRef
 	securityGroups []SecurityGroupRef
+	subnetRef      string
+	stackType      *compute.VirtualMachineSpecNetworkingStackType
 	sshKeys        []string
 	cloudInitData  string
 	zone           string
@@ -194,6 +245,29 @@ func (b *VirtualMachineBuilder) WithSecurityGroup(ref SecurityGroupRef) *Virtual
 	return b
 }
 
+// WithSubnet sets the subnet reference for the VM's networking.
+// Required in v1beta2 — the VM must be placed in a specific subnet.
+func (b *VirtualMachineBuilder) WithSubnet(subnetRef string) *VirtualMachineBuilder {
+	b.subnetRef = subnetRef
+	return b
+}
+
+// WithStackType sets the VM's network stack type ("dual-stack", "ipv4-only", or "ipv6-only").
+func (b *VirtualMachineBuilder) WithStackType(st compute.VirtualMachineSpecNetworkingStackType) *VirtualMachineBuilder {
+	b.stackType = &st
+	return b
+}
+
+// WithDualStack is a convenience method to enable dual-stack networking (IPv4 + IPv6).
+func (b *VirtualMachineBuilder) WithDualStack() *VirtualMachineBuilder {
+	return b.WithStackType(compute.DualStack)
+}
+
+// WithIPv6Only is a convenience method to enable IPv6-only networking.
+func (b *VirtualMachineBuilder) WithIPv6Only() *VirtualMachineBuilder {
+	return b.WithStackType(compute.Ipv6Only)
+}
+
 // WithSSHKey adds an SSH public key for authentication.
 // WARNING: Ignored if WithCloudInit() is set. Configure SSH keys in your cloud-init script instead.
 func (b *VirtualMachineBuilder) WithSSHKey(publicKey string) *VirtualMachineBuilder {
@@ -262,31 +336,34 @@ func (b *VirtualMachineBuilder) Build() *compute.VirtualMachineRequest {
 		vmReq.Spec.Disks = &disks
 	}
 
-	// Add networking configuration if specified
-	if b.publicIP != "" || len(b.securityGroups) > 0 {
-		vmReq.Spec.Networking = &compute.VirtualMachineSpecNetworking{}
+	// Add networking configuration
+	if b.subnetRef != "" {
+		vmReq.Spec.Networking.SubnetRef = b.subnetRef
+	}
+	if b.stackType != nil {
+		vmReq.Spec.Networking.StackType = b.stackType
+	}
 
-		if b.publicIP != "" {
-			publicIPStr := b.publicIP.String()
-			vmReq.Spec.Networking.PublicIPv4Address = &struct {
-				Static *compute.VirtualMachineSpecNetworkingStatic `json:"static,omitempty"`
-			}{
-				Static: &compute.VirtualMachineSpecNetworkingStatic{
-					PublicIPRef: &publicIPStr,
-				},
-			}
+	if b.publicIP != "" {
+		publicIPStr := b.publicIP.String()
+		vmReq.Spec.Networking.PublicIPv4Address = &struct {
+			Static *compute.VirtualMachineSpecNetworkingStatic `json:"static,omitempty"`
+		}{
+			Static: &compute.VirtualMachineSpecNetworkingStatic{
+				PublicIPRef: &publicIPStr,
+			},
 		}
+	}
 
-		if len(b.securityGroups) > 0 {
-			sgRefs := make([]string, len(b.securityGroups))
-			for i, ref := range b.securityGroups {
-				sgRefs[i] = ref.String()
-			}
-			vmReq.Spec.Networking.SecurityGroupSettings = &struct {
-				SecurityGroupMemberRefs *[]string `json:"securityGroupMemberRefs,omitempty"`
-			}{
-				SecurityGroupMemberRefs: &sgRefs,
-			}
+	if len(b.securityGroups) > 0 {
+		sgRefs := make([]string, len(b.securityGroups))
+		for i, ref := range b.securityGroups {
+			sgRefs[i] = ref.String()
+		}
+		vmReq.Spec.Networking.SecurityGroupSettings = &struct {
+			SecurityGroupMemberRefs *[]string `json:"securityGroupMemberRefs,omitempty"`
+		}{
+			SecurityGroupMemberRefs: &sgRefs,
 		}
 	}
 
@@ -335,8 +412,12 @@ func (b *VirtualMachineBuilder) Build() *compute.VirtualMachineRequest {
 }
 
 // Create is a convenience method that builds and creates the VM in one call.
+// If WithSubnet was not called, defaults to the zone's default subnet (default-{region}-{zone}).
 func (b *VirtualMachineBuilder) Create(ctx context.Context, client *VirtualMachinesService) (*compute.VirtualMachine, error) {
 	vmReq := b.Build()
+	if vmReq.Spec.Networking.SubnetRef == "" && b.zone != "" {
+		vmReq.Spec.Networking.SubnetRef = client.client.DefaultSubnetRef(b.zone)
+	}
 	return client.Create(ctx, vmReq)
 }
 

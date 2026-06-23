@@ -73,6 +73,7 @@ func (b *PublicIPBuilder) Create(ctx context.Context, client *PublicIPsService) 
 // SecurityGroupBuilder provides a fluent interface for creating SecurityGroup resources.
 type SecurityGroupBuilder struct {
 	id     string
+	vpcRef string
 	rules  []networking.SecurityGroupSpecRulesItem
 	labels map[string]string
 }
@@ -83,6 +84,13 @@ func NewSecurityGroupBuilder(id string) *SecurityGroupBuilder {
 		id:    id,
 		rules: []networking.SecurityGroupSpecRulesItem{},
 	}
+}
+
+// WithVPCRef sets the VPC reference for the security group.
+// Required in v1beta2 — security groups must belong to a VPC.
+func (b *SecurityGroupBuilder) WithVPCRef(vpcRef string) *SecurityGroupBuilder {
+	b.vpcRef = vpcRef
+	return b
 }
 
 // AllowIngressRule adds an ingress (inbound) rule to the security group
@@ -252,7 +260,9 @@ func (b *SecurityGroupBuilder) Build() *networking.SecurityGroupRequest {
 		Metadata: networking.RegionalMetadataRequest{
 			Id: b.id,
 		},
-		Spec: networking.SecurityGroupSpec{},
+		Spec: networking.SecurityGroupSpec{
+			VpcRef: b.vpcRef,
+		},
 	}
 
 	if len(b.rules) > 0 {
@@ -269,7 +279,177 @@ func (b *SecurityGroupBuilder) Build() *networking.SecurityGroupRequest {
 }
 
 // Create is a convenience method that builds and creates the security group in one call.
-func (b *SecurityGroupBuilder) Create(ctx context.Context, client *SecurityGroupsService) (*networking.SecurityGroup, error) {
-	req := b.Build()
-	return client.Create(ctx, req)
+func (b *SecurityGroupBuilder) Create(ctx context.Context, svc *SecurityGroupsService) (*networking.SecurityGroup, error) {
+	return svc.Create(ctx, b.Build())
 }
+
+// ============================================================================
+// VPC Builder
+// ============================================================================
+
+// VPCBuilder provides a fluent interface for creating VirtualPrivateCloud resources.
+type VPCBuilder struct {
+	id             string
+	ipv4CidrBlocks []string
+	stackType      *networking.VirtualPrivateCloudSpecStackType
+	labels         map[string]string
+}
+
+// NewVPCBuilder creates a new builder for VirtualPrivateCloud.
+func NewVPCBuilder(id string) *VPCBuilder {
+	return &VPCBuilder{id: id}
+}
+
+// WithIPv4CIDRBlock adds an IPv4 CIDR block to the VPC (e.g. "10.0.0.0/16").
+// Must be within RFC 1918 ranges. Defaults to ["10.0.0.0/16"] if not set.
+func (b *VPCBuilder) WithIPv4CIDRBlock(cidr string) *VPCBuilder {
+	b.ipv4CidrBlocks = append(b.ipv4CidrBlocks, cidr)
+	return b
+}
+
+// WithStackType sets the VPC stack type ("dual-stack" or "ipv6-only").
+// Defaults to dual-stack if not set.
+func (b *VPCBuilder) WithStackType(st networking.VirtualPrivateCloudSpecStackType) *VPCBuilder {
+	b.stackType = &st
+	return b
+}
+
+// WithDualStack is a convenience method to set dual-stack mode (IPv4 + IPv6).
+func (b *VPCBuilder) WithDualStack() *VPCBuilder {
+	return b.WithStackType(networking.VirtualPrivateCloudSpecStackTypeDualStack)
+}
+
+// WithIPv6Only is a convenience method to set IPv6-only mode.
+func (b *VPCBuilder) WithIPv6Only() *VPCBuilder {
+	return b.WithStackType(networking.VirtualPrivateCloudSpecStackTypeIpv6Only)
+}
+
+// WithLabels sets user-defined labels for the VPC.
+func (b *VPCBuilder) WithLabels(labels map[string]string) *VPCBuilder {
+	b.labels = labels
+	return b
+}
+
+// Build creates the VirtualPrivateCloudRequest structure.
+func (b *VPCBuilder) Build() *networking.VirtualPrivateCloudRequest {
+	req := &networking.VirtualPrivateCloudRequest{
+		ApiVersion: builderAPIVersion,
+		Kind:       "VirtualPrivateCloud",
+		Metadata:   networking.RegionalMetadataRequest{Id: b.id},
+		Spec:       networking.VirtualPrivateCloudSpec{},
+	}
+
+	if len(b.ipv4CidrBlocks) > 0 {
+		req.Spec.Ipv4CidrBlocks = &b.ipv4CidrBlocks
+	}
+	if b.stackType != nil {
+		req.Spec.StackType = b.stackType
+	}
+	if len(b.labels) > 0 {
+		userLabels := networking.UserLabels(b.labels)
+		req.Metadata.UserLabels = &userLabels
+	}
+
+	return req
+}
+
+// Create is a convenience method that builds and creates the VPC in one call.
+func (b *VPCBuilder) Create(ctx context.Context, svc *VirtualPrivateCloudsService) (*networking.VirtualPrivateCloud, error) {
+	return svc.Create(ctx, b.Build())
+}
+
+// ============================================================================
+// Subnet Builder
+// ============================================================================
+
+// SubnetBuilder provides a fluent interface for creating Subnet resources.
+type SubnetBuilder struct {
+	id            string
+	vpcRef        string
+	ipv4CidrBlock string
+	stackType     networking.SubnetSpecStackType
+	zone          string
+	labels        map[string]string
+}
+
+// NewSubnetBuilder creates a new builder for Subnet.
+func NewSubnetBuilder(id string) *SubnetBuilder {
+	return &SubnetBuilder{
+		id:        id,
+		stackType: networking.SubnetSpecStackTypeDualStack,
+	}
+}
+
+// WithVPCRef sets the VPC reference for the subnet.
+func (b *SubnetBuilder) WithVPCRef(vpcRef string) *SubnetBuilder {
+	b.vpcRef = vpcRef
+	return b
+}
+
+// WithIPv4CIDRBlock sets the IPv4 CIDR block for the subnet (e.g. "10.0.1.0/24").
+// Required when stackType is "dual-stack".
+func (b *SubnetBuilder) WithIPv4CIDRBlock(cidr string) *SubnetBuilder {
+	b.ipv4CidrBlock = cidr
+	return b
+}
+
+// WithStackType sets the subnet stack type ("dual-stack" or "ipv6-only").
+func (b *SubnetBuilder) WithStackType(st networking.SubnetSpecStackType) *SubnetBuilder {
+	b.stackType = st
+	return b
+}
+
+// WithDualStack is a convenience method to set dual-stack mode.
+func (b *SubnetBuilder) WithDualStack() *SubnetBuilder {
+	return b.WithStackType(networking.SubnetSpecStackTypeDualStack)
+}
+
+// WithIPv6Only is a convenience method to set IPv6-only mode.
+func (b *SubnetBuilder) WithIPv6Only() *SubnetBuilder {
+	return b.WithStackType(networking.SubnetSpecStackTypeIpv6Only)
+}
+
+// WithZone sets the availability zone for the subnet.
+func (b *SubnetBuilder) WithZone(zone string) *SubnetBuilder {
+	b.zone = zone
+	return b
+}
+
+// WithLabels sets user-defined labels for the subnet.
+func (b *SubnetBuilder) WithLabels(labels map[string]string) *SubnetBuilder {
+	b.labels = labels
+	return b
+}
+
+// Build creates the SubnetRequest structure.
+func (b *SubnetBuilder) Build() *networking.SubnetRequest {
+	req := &networking.SubnetRequest{
+		ApiVersion: builderAPIVersion,
+		Kind:       "Subnet",
+		Metadata:   networking.RegionalMetadataRequest{Id: b.id},
+		Spec: networking.SubnetSpec{
+			VpcRef:    b.vpcRef,
+			StackType: b.stackType,
+			Placement: networking.SubnetSpecPlacement{},
+		},
+	}
+
+	if b.ipv4CidrBlock != "" {
+		req.Spec.Ipv4CidrBlock = &b.ipv4CidrBlock
+	}
+	if b.zone != "" {
+		req.Spec.Placement.Zone = &b.zone
+	}
+	if len(b.labels) > 0 {
+		userLabels := networking.UserLabels(b.labels)
+		req.Metadata.UserLabels = &userLabels
+	}
+
+	return req
+}
+
+// Create is a convenience method that builds and creates the subnet in one call.
+func (b *SubnetBuilder) Create(ctx context.Context, svc *SubnetsService) (*networking.Subnet, error) {
+	return svc.Create(ctx, b.Build())
+}
+
