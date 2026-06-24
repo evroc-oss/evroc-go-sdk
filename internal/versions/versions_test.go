@@ -14,8 +14,8 @@ func TestGetAPIVersion(t *testing.T) {
 		service  string
 		expected string
 	}{
-		{"compute", "compute", "v1beta2"},
-		{"networking", "networking", "v1beta2"},
+		{"compute", "compute", "v1beta1"},
+		{"networking", "networking", "v1beta1"},
 		{"iam", "iam", "v1beta1"},
 		{"storage", "storage", "v1"},
 		{"quotas", "quotas", "v1alpha2"},

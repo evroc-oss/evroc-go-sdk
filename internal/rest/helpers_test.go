@@ -144,7 +144,7 @@ func TestFilters(t *testing.T) {
 		Items []testResource `json:"items"`
 	}
 
-	labelFilter := WithLabels(map[string]string{"app": "test", "env": "prod"})
+	labelFilter := WithLabelSelector(map[string]string{"app": "test", "env": "prod"})
 	if _, err := ListWithFilters[*testList](ctx, client, "/tests", labelFilter); err != nil {
 		t.Errorf("ListWithFilters failed: %v", err)
 	}

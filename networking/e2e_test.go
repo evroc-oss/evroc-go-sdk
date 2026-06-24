@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	evroc "github.com/evroc-oss/evroc-go-sdk"
 	"github.com/evroc-oss/evroc-go-sdk/internal/e2etest"
 	"github.com/evroc-oss/evroc-go-sdk/networking"
 	networkingtypes "github.com/evroc-oss/evroc-go-sdk/types/networking"
@@ -84,213 +83,13 @@ func TestE2E_PublicIP_Lifecycle(t *testing.T) {
 	}
 	ipDeleted = true
 
-	// Wait for public IP to be fully deleted
-	t.Logf("Waiting for public IP deletion...")
-	if err := client.Networking().PublicIPs().WaitForDeleted(ctx, ipID, 2*time.Minute); err != nil {
-		t.Fatalf("public IP not deleted in time: %v", err)
-	}
+	// Verify public IP was deleted
+	t.Logf("Verifying public IP deletion")
+	e2etest.AssertDeleted(t, ctx, func(ctx context.Context, id string) (any, error) {
+		return client.Networking().PublicIPs().Get(ctx, id)
+	}, ipID, "public IP")
 
 	t.Logf("Public IP lifecycle test completed successfully")
-}
-
-func TestE2E_VPC_Lifecycle(t *testing.T) {
-	e2etest.PreCheck(t)
-
-	ctx := context.Background()
-	client := e2etest.NewClient(t)
-	vpcName := e2etest.RandomName("vpc")
-
-	t.Logf("Creating VPC: %s", vpcName)
-
-	vpc, err := networking.NewVPCBuilder(vpcName).
-		WithIPv4CIDRBlock("10.100.0.0/16").
-		WithDualStack().
-		Create(ctx, client.Networking().VirtualPrivateClouds())
-
-	if err != nil {
-		// VPC create may be restricted to platform admins; fall back to read-only tests
-		t.Logf("VPC create returned: %v — falling back to read-only tests", err)
-		t.Run("ReadOnly", func(t *testing.T) {
-			testVPCReadOnly(t, ctx, client)
-		})
-		return
-	}
-
-	vpcID := e2etest.MustGetID(t, vpc.Metadata.Id, "VPC")
-	t.Logf("Created VPC with ID: %s", vpcID)
-
-	vpcDeleted := false
-	e2etest.DeferCleanup(t, ctx, client.Networking().VirtualPrivateClouds().Delete, vpcID, "VPC", &vpcDeleted)
-
-	// Read VPC
-	t.Logf("Reading VPC: %s", vpcID)
-	retrieved, err := client.Networking().VirtualPrivateClouds().Get(ctx, vpcID)
-	if err != nil {
-		t.Fatalf("failed to get VPC: %v", err)
-	}
-
-	if retrieved.Metadata.Id != vpcID {
-		t.Errorf("expected VPC ID %s, got %v", vpcID, retrieved.Metadata.Id)
-	}
-
-	// List VPCs - should include ours
-	t.Logf("Listing VPCs")
-	vpcs, err := client.Networking().VirtualPrivateClouds().List(ctx)
-	if err != nil {
-		t.Fatalf("failed to list VPCs: %v", err)
-	}
-
-	e2etest.AssertInList(t, vpcs.Items, vpcID, func(v networkingtypes.VirtualPrivateCloud) string { return v.Metadata.Id }, "VPC")
-
-	// Delete VPC
-	t.Logf("Deleting VPC: %s", vpcID)
-	if err := client.Networking().VirtualPrivateClouds().Delete(ctx, vpcID); err != nil {
-		t.Fatalf("failed to delete VPC: %v", err)
-	}
-	vpcDeleted = true
-
-	// Wait for VPC to be fully deleted
-	t.Logf("Waiting for VPC deletion...")
-	if err := client.Networking().VirtualPrivateClouds().WaitForDeleted(ctx, vpcID, 2*time.Minute); err != nil {
-		t.Fatalf("VPC not deleted in time: %v", err)
-	}
-
-	t.Logf("VPC lifecycle test completed successfully")
-}
-
-func testVPCReadOnly(t *testing.T, ctx context.Context, client *evroc.Client) {
-	t.Helper()
-
-	// List VPCs
-	t.Logf("Listing VPCs")
-	vpcs, err := client.Networking().VirtualPrivateClouds().List(ctx)
-	if err != nil {
-		t.Fatalf("failed to list VPCs: %v", err)
-	}
-
-	if len(vpcs.Items) == 0 {
-		t.Fatal("expected at least one VPC (default VPC)")
-	}
-	t.Logf("Found %d VPC(s)", len(vpcs.Items))
-
-	// Get the default VPC by name
-	defaultVPCName := "default-" + e2etest.GetRegion()
-	t.Logf("Getting default VPC: %s", defaultVPCName)
-	vpc, err := client.Networking().VirtualPrivateClouds().Get(ctx, defaultVPCName)
-	if err != nil {
-		t.Fatalf("failed to get default VPC: %v", err)
-	}
-
-	if vpc.Metadata.Id != defaultVPCName {
-		t.Errorf("expected VPC ID %s, got %s", defaultVPCName, vpc.Metadata.Id)
-	}
-
-	t.Logf("Default VPC verified: %s (IPv4 CIDRs: %v)", vpc.Metadata.Id, vpc.Status.AssignedIPv4CidrBlocks)
-	t.Logf("VPC read-only test completed successfully")
-}
-
-func TestE2E_Subnet_Lifecycle(t *testing.T) {
-	e2etest.PreCheck(t)
-
-	ctx := context.Background()
-	client := e2etest.NewClient(t)
-	subnetName := e2etest.RandomName("subnet")
-
-	vpcRef := client.Networking().DefaultVPCRef()
-
-	t.Logf("Creating subnet: %s (in default VPC)", subnetName)
-
-	subnet, err := networking.NewSubnetBuilder(subnetName).
-		WithVPCRef(vpcRef).
-		WithIPv4CIDRBlock("10.0.200.0/24").
-		WithDualStack().
-		WithZone("a").
-		Create(ctx, client.Networking().Subnets())
-
-	if err != nil {
-		t.Logf("Subnet create returned: %v — falling back to read-only tests", err)
-		t.Run("ReadOnly", func(t *testing.T) {
-			testSubnetReadOnly(t, ctx, client)
-		})
-		return
-	}
-
-	subnetID := e2etest.MustGetID(t, subnet.Metadata.Id, "subnet")
-	t.Logf("Created subnet with ID: %s", subnetID)
-
-	subnetDeleted := false
-	e2etest.DeferCleanup(t, ctx, client.Networking().Subnets().Delete, subnetID, "subnet", &subnetDeleted)
-
-	// Read subnet
-	t.Logf("Reading subnet: %s", subnetID)
-	retrieved, err := client.Networking().Subnets().Get(ctx, subnetID)
-	if err != nil {
-		t.Fatalf("failed to get subnet: %v", err)
-	}
-
-	if retrieved.Metadata.Id != subnetID {
-		t.Errorf("expected subnet ID %s, got %v", subnetID, retrieved.Metadata.Id)
-	}
-	if retrieved.Spec.VpcRef != vpcRef {
-		t.Errorf("expected VPC ref %s, got %s", vpcRef, retrieved.Spec.VpcRef)
-	}
-
-	// List subnets - should include ours
-	t.Logf("Listing subnets")
-	subnets, err := client.Networking().Subnets().List(ctx)
-	if err != nil {
-		t.Fatalf("failed to list subnets: %v", err)
-	}
-	e2etest.AssertInList(t, subnets.Items, subnetID, func(s networkingtypes.Subnet) string { return s.Metadata.Id }, "subnet")
-
-	// Delete subnet
-	t.Logf("Deleting subnet: %s", subnetID)
-	if err := client.Networking().Subnets().Delete(ctx, subnetID); err != nil {
-		t.Fatalf("failed to delete subnet: %v", err)
-	}
-	subnetDeleted = true
-
-	// Wait for subnet to be fully deleted
-	t.Logf("Waiting for subnet deletion...")
-	if err := client.Networking().Subnets().WaitForDeleted(ctx, subnetID, 2*time.Minute); err != nil {
-		t.Fatalf("subnet not deleted in time: %v", err)
-	}
-
-	t.Logf("Subnet lifecycle test completed successfully")
-}
-
-func testSubnetReadOnly(t *testing.T, ctx context.Context, client *evroc.Client) {
-	t.Helper()
-
-	t.Logf("Listing subnets")
-	subnets, err := client.Networking().Subnets().List(ctx)
-	if err != nil {
-		t.Fatalf("failed to list subnets: %v", err)
-	}
-
-	if len(subnets.Items) == 0 {
-		t.Fatal("expected at least one subnet (default subnets)")
-	}
-	t.Logf("Found %d subnet(s)", len(subnets.Items))
-
-	// Get the first subnet
-	subnetName := subnets.Items[0].Metadata.Id
-	t.Logf("Getting subnet: %s", subnetName)
-	subnet, err := client.Networking().Subnets().Get(ctx, subnetName)
-	if err != nil {
-		t.Fatalf("failed to get subnet: %v", err)
-	}
-
-	if subnet.Metadata.Id != subnetName {
-		t.Errorf("expected subnet ID %s, got %s", subnetName, subnet.Metadata.Id)
-	}
-
-	ipv4 := "none"
-	if subnet.Spec.Ipv4CidrBlock != nil {
-		ipv4 = *subnet.Spec.Ipv4CidrBlock
-	}
-	t.Logf("Subnet verified: %s (VPC: %s, IPv4: %s, stack: %s)", subnet.Metadata.Id, subnet.Spec.VpcRef, ipv4, subnet.Spec.StackType)
-	t.Logf("Subnet read-only test completed successfully")
 }
 
 func TestE2E_SecurityGroup_Lifecycle(t *testing.T) {
@@ -384,11 +183,11 @@ func TestE2E_SecurityGroup_Lifecycle(t *testing.T) {
 	}
 	sgDeleted = true
 
-	// Wait for security group to be fully deleted
-	t.Logf("Waiting for security group deletion...")
-	if err := client.Networking().SecurityGroups().WaitForDeleted(ctx, sgID, 2*time.Minute); err != nil {
-		t.Fatalf("security group not deleted in time: %v", err)
-	}
+	// Verify security group was deleted
+	t.Logf("Verifying security group deletion")
+	e2etest.AssertDeleted(t, ctx, func(ctx context.Context, id string) (any, error) {
+		return client.Networking().SecurityGroups().Get(ctx, id)
+	}, sgID, "security group")
 
 	t.Logf("Security group lifecycle test completed successfully")
 }

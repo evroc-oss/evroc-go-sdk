@@ -147,6 +147,18 @@ type GlobalMetadataResponse struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
+// GlobalOrgMetadataRequest defines model for GlobalOrgMetadataRequest.
+type GlobalOrgMetadataRequest struct {
+	// Id Unique identifier for the resource within its namespace. Immutable.
+	Id string `json:"id"`
+
+	// Organization Organization associated with the resource.
+	Organization *string `json:"organization,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
 // GlobalProjectMetadataRequest defines model for GlobalProjectMetadataRequest.
 type GlobalProjectMetadataRequest struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
@@ -170,8 +182,8 @@ type GlobalProjectMetadataResponse struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
 
-	// Project Project to which this resource belongs.
-	Project *string `json:"project,omitempty"`
+	// Organization Organization associated with the resource.
+	Organization *string `json:"organization,omitempty"`
 
 	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`

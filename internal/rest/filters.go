@@ -5,29 +5,60 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"net/url"
-
-	"github.com/evroc-oss/evroc-go-sdk/filter"
 )
 
-// ListFilter is an alias for the public filter.ListFilter interface.
-// Generated service code references rest.ListFilter; this alias ensures
-// that external consumers can pass filter.WithLabelSelector() values
-// directly to List() methods.
-type ListFilter = filter.ListFilter
+const (
+	// QueryParamLabelSelector is the query parameter for label filtering.
+	QueryParamLabelSelector = "labelSelector"
+)
 
-// WithLabelSelector delegates to filter.WithLabelSelector.
-var WithLabelSelector = filter.WithLabelSelector
+// ListFilter defines a composable filter for List() methods.
+type ListFilter interface {
+	Apply(url.Values)
+}
 
-// WithLabels delegates to filter.WithLabels.
-var WithLabels = filter.WithLabels
+// filterFunc adapts functions to ListFilter.
+type filterFunc func(url.Values)
+
+// Apply implements ListFilter.
+func (f filterFunc) Apply(v url.Values) {
+	f(v)
+}
+
+// WithLabelSelector creates a label filter.
+// User labels: {"env": "prod"}
+// System labels: {"compute.evroc.com/zone": "a"}
+func WithLabelSelector(labels map[string]string) ListFilter {
+	return filterFunc(func(v url.Values) {
+		if len(labels) > 0 {
+			v.Set(QueryParamLabelSelector, formatLabelsForQuery(labels))
+		}
+	})
+}
+
+// formatLabelsForQuery converts labels to query format (key1=value1,key2=value2).
+func formatLabelsForQuery(labels map[string]string) string {
+	if len(labels) == 0 {
+		return ""
+	}
+	result := ""
+	for k, v := range labels {
+		if result != "" {
+			result += ","
+		}
+		result += fmt.Sprintf("%s=%s", k, v)
+	}
+	return result
+}
 
 // ListWithFilters applies filters and calls ListResourcesWithQuery.
 // Used by generated List() methods to support composable filters.
 func ListWithFilters[T any](ctx context.Context, client *Client, path string, filters ...ListFilter) (T, error) {
 	query := url.Values{}
-	for _, f := range filters {
-		f.Apply(query)
+	for _, filter := range filters {
+		filter.Apply(query)
 	}
 	return ListResourcesWithQuery[T](ctx, client, path, query)
 }

@@ -16,8 +16,8 @@ import (
 
 	evroc "github.com/evroc-oss/evroc-go-sdk"
 	"github.com/evroc-oss/evroc-go-sdk/compute"
-	"github.com/evroc-oss/evroc-go-sdk/filter"
 	"github.com/evroc-oss/evroc-go-sdk/iam"
+	"github.com/evroc-oss/evroc-go-sdk/internal/rest"
 	"github.com/evroc-oss/evroc-go-sdk/networking"
 	"github.com/evroc-oss/evroc-go-sdk/storage"
 )
@@ -84,7 +84,6 @@ func createResourcesWithLabels(ctx context.Context, client *evroc.Client) error 
 	prodVM := compute.NewVirtualMachineBuilder("sdk-prod-vm").
 		WithBootDisk(createdProdDisk.Ref()).
 		WithSize(string(compute.VMSizeA1aXS)).
-		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		WithLabels(map[string]string{
 			"environment": "production",
@@ -206,7 +205,7 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 	// Example 1: Filter disks by environment
 	fmt.Println("\n1. Filtering disks by environment=production...")
 	prodDisks, err := client.Compute().Disks().List(ctx,
-		filter.WithLabels(map[string]string{"environment": "production"}))
+		rest.WithLabelSelector(map[string]string{"environment": "production"}))
 	if err != nil {
 		return fmt.Errorf("failed to filter prod disks: %w", err)
 	}
@@ -218,7 +217,7 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 	// Example 2: Filter VMs by multiple labels
 	fmt.Println("\n2. Filtering VMs by environment=production AND managed-by=devops...")
 	prodVMs, err := client.Compute().VirtualMachines().List(ctx,
-		filter.WithLabels(map[string]string{
+		rest.WithLabelSelector(map[string]string{
 			"environment": "production",
 			"managed-by":  "devops",
 		}))
@@ -230,22 +229,10 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 		fmt.Printf("   - %s\n", vm.Metadata.Id)
 	}
 
-	// Example 3: Filter using Kubernetes-style label selector string
-	fmt.Println("\n3. Filtering VMs with label selector string (supports in, notin, !=, exists)...")
-	frontendVMs, err := client.Compute().VirtualMachines().List(ctx,
-		filter.WithLabelSelector("tier in (frontend,backend),environment=production"))
-	if err != nil {
-		return fmt.Errorf("failed to filter with selector: %w", err)
-	}
-	fmt.Printf("   Found %d VMs matching selector:\n", len(frontendVMs.Items))
-	for _, vm := range frontendVMs.Items {
-		fmt.Printf("   - %s\n", vm.Metadata.Id)
-	}
-
-	// Example 4: Filter by team
-	fmt.Println("\n4. Filtering public IPs by team=platform...")
+	// Example 3: Filter by team
+	fmt.Println("\n3. Filtering public IPs by team=platform...")
 	teamIPs, err := client.Networking().PublicIPs().List(ctx,
-		filter.WithLabels(map[string]string{"team": "platform"}))
+		rest.WithLabelSelector(map[string]string{"team": "platform"}))
 	if err != nil {
 		return fmt.Errorf("failed to filter team IPs: %w", err)
 	}
@@ -254,10 +241,10 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 		fmt.Printf("   - %s\n", ip.Metadata.Id)
 	}
 
-	// Example 5: Filter security groups
-	fmt.Println("\n5. Filtering security groups by team=platform...")
+	// Example 4: Filter security groups
+	fmt.Println("\n4. Filtering security groups by team=platform...")
 	teamSGs, err := client.Networking().SecurityGroups().List(ctx,
-		filter.WithLabels(map[string]string{"team": "platform"}))
+		rest.WithLabelSelector(map[string]string{"team": "platform"}))
 	if err != nil {
 		return fmt.Errorf("failed to filter team SGs: %w", err)
 	}
@@ -266,10 +253,10 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 		fmt.Printf("   - %s\n", sg.Metadata.Id)
 	}
 
-	// Example 6: Filter buckets by purpose
-	fmt.Println("\n6. Filtering buckets by purpose=backups...")
+	// Example 5: Filter buckets by purpose
+	fmt.Println("\n5. Filtering buckets by purpose=backups...")
 	backupBuckets, err := client.Storage().Buckets().List(ctx,
-		filter.WithLabels(map[string]string{"purpose": "backups"}))
+		rest.WithLabelSelector(map[string]string{"purpose": "backups"}))
 	if err != nil {
 		return fmt.Errorf("failed to filter backup buckets: %w", err)
 	}
@@ -278,10 +265,10 @@ func filterResourcesByLabels(ctx context.Context, client *evroc.Client) error {
 		fmt.Printf("   - %s\n", bucket.Metadata.Id)
 	}
 
-	// Example 7: Filter development resources
-	fmt.Println("\n7. Filtering all development disks...")
+	// Example 6: Filter development resources
+	fmt.Println("\n6. Filtering all development disks...")
 	devDisks, err := client.Compute().Disks().List(ctx,
-		filter.WithLabels(map[string]string{"environment": "development"}))
+		rest.WithLabelSelector(map[string]string{"environment": "development"}))
 	if err != nil {
 		return fmt.Errorf("failed to filter dev disks: %w", err)
 	}
@@ -313,7 +300,6 @@ func demonstrateLabelBestPractices(ctx context.Context, client *evroc.Client) er
 	// Example: Create a well-labeled VM
 	wellLabeledVM := compute.NewVirtualMachineBuilder("sdk-best-practice-vm").
 		WithSize(string(compute.VMSizeA1aXS)).
-		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		WithLabels(map[string]string{
 			// Environment classification

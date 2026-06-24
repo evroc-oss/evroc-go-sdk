@@ -133,7 +133,6 @@ func create(ctx context.Context, client *evroc.Client) {
 				WithVMInstanceType(vmType).
 				WithSecurityGroup(sg.Ref()).
 				WithCloudInit(cloudInit).
-				WithSubnet(client.Compute().DefaultSubnetRef(vm.zone)).
 				WithZone(vm.zone).
 				Build())
 		if err != nil {

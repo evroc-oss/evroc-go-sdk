@@ -128,7 +128,6 @@ func TestE2E_VirtualMachine_Lifecycle(t *testing.T) {
 	vm, err := compute.NewVirtualMachineBuilder(vmName).
 		WithVMInstanceType(string(e2etest.TestVMSize)).
 		WithBootDisk(disk.Ref()).
-		WithSubnet(client.Compute().DefaultSubnetRef(e2etest.TestVMZone)).
 		WithZone(e2etest.TestVMZone).
 		Create(ctx, client.Compute().VirtualMachines())
 

@@ -17,25 +17,6 @@ type VirtualPrivateCloudsService struct {
 	client *Client
 }
 
-// Create creates a VirtualPrivateCloud using project/region from config.
-func (s *VirtualPrivateCloudsService) Create(ctx context.Context, request *networking.VirtualPrivateCloudRequest) (*networking.VirtualPrivateCloud, error) {
-	path := s.client.path.CollectionPath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceVirtualPrivateClouds)
-	return rest.CreateResource[*networking.VirtualPrivateCloud](ctx, s.client.rest, path, request)
-}
-
-// Delete deletes a VirtualPrivateCloud using project/region from config
-func (s *VirtualPrivateCloudsService) Delete(ctx context.Context, name string) error {
-	path := s.client.path.ResourcePath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceVirtualPrivateClouds,
-		name)
-	return rest.DeleteResource(ctx, s.client.rest, path)
-}
-
 // Get retrieves a VirtualPrivateCloud by name using project/region from config
 func (s *VirtualPrivateCloudsService) Get(ctx context.Context, name string) (*networking.VirtualPrivateCloud, error) {
 	path := s.client.path.ResourcePath(
@@ -53,14 +34,4 @@ func (s *VirtualPrivateCloudsService) List(ctx context.Context, filters ...rest.
 		s.client.parent.DefaultRegion(),
 		resourceVirtualPrivateClouds)
 	return rest.ListWithFilters[*VirtualPrivateCloudList](ctx, s.client.rest, path, filters...)
-}
-
-// Patch partially updates a VirtualPrivateCloud using project/region from config
-func (s *VirtualPrivateCloudsService) Patch(ctx context.Context, name string, patch interface{}) (*networking.VirtualPrivateCloud, error) {
-	path := s.client.path.ResourcePath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceVirtualPrivateClouds,
-		name)
-	return rest.PatchResource[*networking.VirtualPrivateCloud](ctx, s.client.rest, path, patch)
 }
