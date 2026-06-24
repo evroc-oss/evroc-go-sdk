@@ -74,20 +74,6 @@ func IsDiskReady(disk *computetypes.Disk) bool {
 	return false
 }
 
-// IsSnapshotReady returns true if the Snapshot is in Ready condition.
-func IsSnapshotReady(snap *computetypes.Snapshot) bool {
-	if snap == nil || snap.Status.Conditions == nil {
-		return false
-	}
-
-	for _, cond := range *snap.Status.Conditions {
-		if cond.Type == "Ready" && string(cond.Status) == "True" {
-			return true
-		}
-	}
-	return false
-}
-
 // IsPlacementGroupReady returns true if the PlacementGroup is in Ready condition.
 func IsPlacementGroupReady(pg *computetypes.PlacementGroup) bool {
 	if pg == nil || pg.Status.Conditions == nil {

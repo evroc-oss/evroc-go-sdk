@@ -163,7 +163,6 @@ runcmd:
 			WithPublicIP(publicIP.Ref()). // Attach public IP (immutable!)
 			WithSSHKey(sshPublicKey).     // SSH authentication (immutable!)
 			WithCloudInit(cloudInit).     // Install and configure nginx
-			WithSubnet(client.Compute().DefaultSubnetRef("a")).
 			WithZone("a").                // Zone is required
 			Build(),
 	)

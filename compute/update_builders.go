@@ -191,38 +191,15 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 
 	// Apply public IP changes
 	if b.publicIP != nil || b.removePublicIP {
+		if vm.Spec.Networking == nil {
+			vm.Spec.Networking = &compute.VirtualMachineSpecNetworking{}
+		}
+
 		if b.removePublicIP {
-			// Use a dedicated PATCH to clear the publicIPRef. The generated
-			// types have omitempty on both the Static and PublicIPRef fields,
-			// so nil values get dropped. We bypass the full-VM PATCH and send
-			// a minimal patch with a custom struct that omits omitempty.
-			patch := struct {
-				Spec struct {
-					Networking struct {
-						PublicIPv4Address struct {
-							Static struct {
-								PublicIPRef *string `json:"publicIPRef"`
-							} `json:"static"`
-						} `json:"publicIPv4Address"`
-					} `json:"networking"`
-				} `json:"spec"`
-			}{}
-			// PublicIPRef is nil → serializes as "publicIPRef": null
-			updated, err := b.service.Patch(ctx, b.name, patch)
-			if err != nil {
-				return nil, fmt.Errorf("failed to remove public IP: %w", err)
-			}
-			// If this was the only change, return early
-			if len(b.updates) == 1 {
-				return updated, nil
-			}
-			// Otherwise continue with the rest of the updates — re-fetch
-			// the VM to get the latest resourceVersion
-			vm, err = b.service.Get(ctx, b.name)
-			if err != nil {
-				return nil, fmt.Errorf("failed to re-fetch VM after removing public IP: %w", err)
-			}
+			// Remove public IP
+			vm.Spec.Networking.PublicIPv4Address = nil
 		} else if b.publicIP != nil {
+			// Set or change public IP
 			publicIPPath := b.service.resolvePublicIPPath(*b.publicIP)
 			vm.Spec.Networking.PublicIPv4Address = &struct {
 				Static *compute.VirtualMachineSpecNetworkingStatic `json:"static,omitempty"`
@@ -264,6 +241,9 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 
 	// Apply security group changes
 	if len(b.addSGs) > 0 || len(b.removeSGs) > 0 {
+		if vm.Spec.Networking == nil {
+			vm.Spec.Networking = &compute.VirtualMachineSpecNetworking{}
+		}
 		if vm.Spec.Networking.SecurityGroupSettings == nil {
 			vm.Spec.Networking.SecurityGroupSettings = &struct {
 				SecurityGroupMemberRefs *[]string `json:"securityGroupMemberRefs,omitempty"`

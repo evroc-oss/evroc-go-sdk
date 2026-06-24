@@ -50,15 +50,10 @@ func (r *pathResolver) resolvePtr(ref *string, path rest.ServicePath, resourceTy
 	}
 }
 
-// resolveVirtualMachinesPaths resolves short IDs to fully qualified IDs
-// and defaults SubnetRef to the zone's default subnet if not set.
+// resolveVirtualMachinesPaths resolves short IDs to fully qualified IDs.
 func (s *VirtualMachinesService) resolveVirtualMachinesPaths(req *compute.VirtualMachineRequest) *compute.VirtualMachineRequest {
 	resolved := *req
 	r := s.newPathResolver()
-
-	if resolved.Spec.Networking.SubnetRef == "" && resolved.Spec.Placement.Zone != nil {
-		resolved.Spec.Networking.SubnetRef = s.client.DefaultSubnetRef(*resolved.Spec.Placement.Zone)
-	}
 
 	// Resolve disk references
 	if resolved.Spec.Disks != nil {
@@ -71,16 +66,18 @@ func (s *VirtualMachinesService) resolveVirtualMachinesPaths(req *compute.Virtua
 	}
 
 	// Resolve networking references
-	if resolved.Spec.Networking.PublicIPv4Address != nil &&
-		resolved.Spec.Networking.PublicIPv4Address.Static != nil {
-		r.resolvePtr(resolved.Spec.Networking.PublicIPv4Address.Static.PublicIPRef, r.networkingPath, "publicIPs")
-	}
+	if resolved.Spec.Networking != nil {
+		if resolved.Spec.Networking.PublicIPv4Address != nil &&
+			resolved.Spec.Networking.PublicIPv4Address.Static != nil {
+			r.resolvePtr(resolved.Spec.Networking.PublicIPv4Address.Static.PublicIPRef, r.networkingPath, "publicIPs")
+		}
 
-	if resolved.Spec.Networking.SecurityGroupSettings != nil &&
-		resolved.Spec.Networking.SecurityGroupSettings.SecurityGroupMemberRefs != nil {
-		sgRefs := *resolved.Spec.Networking.SecurityGroupSettings.SecurityGroupMemberRefs
-		for i := range sgRefs {
-			sgRefs[i] = r.resolve(sgRefs[i], r.networkingPath, "securityGroups")
+		if resolved.Spec.Networking.SecurityGroupSettings != nil &&
+			resolved.Spec.Networking.SecurityGroupSettings.SecurityGroupMemberRefs != nil {
+			sgRefs := *resolved.Spec.Networking.SecurityGroupSettings.SecurityGroupMemberRefs
+			for i := range sgRefs {
+				sgRefs[i] = r.resolve(sgRefs[i], r.networkingPath, "securityGroups")
+			}
 		}
 	}
 

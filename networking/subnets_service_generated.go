@@ -17,25 +17,6 @@ type SubnetsService struct {
 	client *Client
 }
 
-// Create creates a Subnet using project/region from config.
-func (s *SubnetsService) Create(ctx context.Context, request *networking.SubnetRequest) (*networking.Subnet, error) {
-	path := s.client.path.CollectionPath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceSubnets)
-	return rest.CreateResource[*networking.Subnet](ctx, s.client.rest, path, request)
-}
-
-// Delete deletes a Subnet using project/region from config
-func (s *SubnetsService) Delete(ctx context.Context, name string) error {
-	path := s.client.path.ResourcePath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceSubnets,
-		name)
-	return rest.DeleteResource(ctx, s.client.rest, path)
-}
-
 // Get retrieves a Subnet by name using project/region from config
 func (s *SubnetsService) Get(ctx context.Context, name string) (*networking.Subnet, error) {
 	path := s.client.path.ResourcePath(
@@ -53,14 +34,4 @@ func (s *SubnetsService) List(ctx context.Context, filters ...rest.ListFilter) (
 		s.client.parent.DefaultRegion(),
 		resourceSubnets)
 	return rest.ListWithFilters[*SubnetList](ctx, s.client.rest, path, filters...)
-}
-
-// Patch partially updates a Subnet using project/region from config
-func (s *SubnetsService) Patch(ctx context.Context, name string, patch interface{}) (*networking.Subnet, error) {
-	path := s.client.path.ResourcePath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceSubnets,
-		name)
-	return rest.PatchResource[*networking.Subnet](ctx, s.client.rest, path, patch)
 }

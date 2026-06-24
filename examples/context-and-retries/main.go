@@ -215,7 +215,6 @@ func demonstrateCustomWaiters() {
 	vm := compute.NewVirtualMachineBuilder("demo-vm").
 		WithBootDisk(created.Ref()).
 		WithSize(string(compute.VMSizeA1aXS)).
-		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		Build()
 

@@ -7,22 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-06-18
+## [0.6.0-rc0] - 2026-06-01
+
+> **Pre-release.** This version is available to selected customers on the pre-release track.
+> The LoadBalancer API is v1alpha1 and subject to breaking changes without notice.
 
 ### Added
-- **LoadBalancer API** (v1alpha1): L4 load balancers, backend pools/services, L4 routes — builders, waiters, helpers
-- **Snapshots**: create disks from snapshots, full CRUD, waiters
-- **VPC and Subnet CRUD**: create, delete, patch — previously read-only
-- VM dual-stack networking: `WithDualStack()`, `WithSubnet()`
-- Auto-default `vpcRef` on SecurityGroup and `subnetRef` on VM create
-- Label filtering helpers (`filter` package)
-- Update builders for IAM, Think, HotswapDiskAttachment
-
-### Changed
-- Compute and Networking APIs upgraded from v1beta1 to v1beta2
-
-### Fixed
-- `RemovePublicIP()` now correctly clears the public IP reference from a VM
+- **LoadBalancer API** (v1alpha1, pre-release): L4 (TCP) load balancers with listeners, backend pools, backend services, and L4 routes
+- LoadBalancer builders for type-safe resource construction
+- WaitForReady and WaitForDeleted helpers for all LoadBalancer resources
+- LoadBalancer healthcheck support (HTTP/HTTPS) for BackendService
+- LoadBalancer E2E tests and CLI tool
 
 ## [0.5.0] - 2026-05-28
 
@@ -82,4 +77,3 @@ Public release
 [Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
-[0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1

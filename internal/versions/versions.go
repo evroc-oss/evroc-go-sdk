@@ -9,17 +9,17 @@ import "fmt"
 
 // SDKVersion is the semantic version of the SDK itself.
 // Update this when releasing new SDK versions.
-const SDKVersion = "0.6.0"
+const SDKVersion = "0.6.0-rc2"
 
 // APIVersion represents an API version string (e.g., "v1alpha2", "v1beta", "v1").
 type APIVersion string
 
 const (
 	// Compute API version
-	ComputeAPIVersion APIVersion = "v1beta2"
+	ComputeAPIVersion APIVersion = "v1beta1"
 
 	// Networking API version
-	NetworkingAPIVersion APIVersion = "v1beta2"
+	NetworkingAPIVersion APIVersion = "v1beta1"
 
 	// IAM API version
 	IAMAPIVersion APIVersion = "v1beta1"

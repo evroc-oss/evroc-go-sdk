@@ -88,7 +88,6 @@ func main() {
 	vmReq := compute.NewVirtualMachineBuilder(vmName).
 		WithSize(vmSize).
 		WithBootDisk(bootDisk.Ref()). // Use the disk we just created
-		WithSubnet(client.Compute().DefaultSubnetRef(zone)).
 		WithZone(zone).
 		Build()
 

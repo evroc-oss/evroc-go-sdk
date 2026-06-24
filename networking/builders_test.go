@@ -28,7 +28,6 @@ func TestPublicIPBuilder(t *testing.T) {
 
 func TestSecurityGroupBuilder(t *testing.T) {
 	req := NewSecurityGroupBuilder("test-sg").
-		WithVPCRef("/networking/projects/my-project/regions/se-sto/virtualPrivateClouds/default-se-sto").
 		AllowIngressRule("custom-ssh", "TCP", 22, 0, "10.0.0.0/8").
 		AllowEgressRule("custom-all", "All", 0, 0, "0.0.0.0/0").
 		AllowSSH().
@@ -44,12 +43,6 @@ func TestSecurityGroupBuilder(t *testing.T) {
 	}
 	if req.Metadata.Id != "test-sg" {
 		t.Errorf("Expected Id 'test-sg', got %s", req.Metadata.Id)
-	}
-
-	// Validate VPC ref
-	expectedVPCRef := "/networking/projects/my-project/regions/se-sto/virtualPrivateClouds/default-se-sto"
-	if req.Spec.VpcRef != expectedVPCRef {
-		t.Errorf("Expected VpcRef %q, got %q", expectedVPCRef, req.Spec.VpcRef)
 	}
 
 	// Validate rules
