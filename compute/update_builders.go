@@ -191,10 +191,6 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 
 	// Apply public IP changes
 	if b.publicIP != nil || b.removePublicIP {
-		if vm.Spec.Networking == nil {
-			vm.Spec.Networking = &compute.VirtualMachineSpecNetworking{}
-		}
-
 		if b.removePublicIP {
 			// Use a dedicated PATCH to clear the publicIPRef. The generated
 			// types have omitempty on both the Static and PublicIPRef fields,
@@ -227,7 +223,6 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 				return nil, fmt.Errorf("failed to re-fetch VM after removing public IP: %w", err)
 			}
 		} else if b.publicIP != nil {
-			// Set or change public IP
 			publicIPPath := b.service.resolvePublicIPPath(*b.publicIP)
 			vm.Spec.Networking.PublicIPv4Address = &struct {
 				Static *compute.VirtualMachineSpecNetworkingStatic `json:"static,omitempty"`
@@ -269,9 +264,6 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 
 	// Apply security group changes
 	if len(b.addSGs) > 0 || len(b.removeSGs) > 0 {
-		if vm.Spec.Networking == nil {
-			vm.Spec.Networking = &compute.VirtualMachineSpecNetworking{}
-		}
 		if vm.Spec.Networking.SecurityGroupSettings == nil {
 			vm.Spec.Networking.SecurityGroupSettings = &struct {
 				SecurityGroupMemberRefs *[]string `json:"securityGroupMemberRefs,omitempty"`

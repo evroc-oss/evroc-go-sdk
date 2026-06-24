@@ -385,3 +385,59 @@ func (s *PlacementGroupsService) WaitForDeleted(ctx context.Context, name string
 		return false, nil
 	})
 }
+
+// WaitForReady polls the snapshot until it has a Ready condition with status True.
+func (s *SnapshotsService) WaitForReady(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) (*compute.Snapshot, error) {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "snapshot"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	var result *compute.Snapshot
+	err := rest.WaitFor(ctx, config, func() (bool, error) {
+		snap, err := s.Get(ctx, name)
+		if err != nil {
+			return false, nil
+		}
+		if IsSnapshotReady(snap) {
+			result = snap
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// WaitForDeleted polls until the snapshot returns 404 (deleted).
+func (s *SnapshotsService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "snapshot"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
+}

@@ -18,7 +18,11 @@ type SecurityGroupsService struct {
 }
 
 // Create creates a SecurityGroup using project/region from config.
+// If VpcRef is empty, defaults to the project's default VPC.
 func (s *SecurityGroupsService) Create(ctx context.Context, request *networking.SecurityGroupRequest) (*networking.SecurityGroup, error) {
+	if request.Spec.VpcRef == "" {
+		request.Spec.VpcRef = s.client.DefaultVPCRef()
+	}
 	path := s.client.path.CollectionPath(
 		s.client.parent.DefaultProject(),
 		s.client.parent.DefaultRegion(),

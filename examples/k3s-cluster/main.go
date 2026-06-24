@@ -273,6 +273,7 @@ func main() {
 			WithSecurityGroup(sg.Ref()).
 			WithPublicIP(publicIP.Ref()).
 			WithCloudInit(serverCloudInit).
+			WithSubnet(client.Compute().DefaultSubnetRef("a")).
 			WithZone("a").
 			Build(),
 	)
@@ -320,6 +321,7 @@ func main() {
 				WithVMInstanceType(agentInstanceType).
 				WithSecurityGroup(sg.Ref()).
 				WithCloudInit(agentCloudInit).
+				WithSubnet(client.Compute().DefaultSubnetRef(zone)).
 				WithZone(zone).
 				Build(),
 		)

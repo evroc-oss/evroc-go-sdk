@@ -217,10 +217,54 @@ func (s *SecurityGroupsService) WaitForDeleted(ctx context.Context, name string,
 	return rest.WaitFor(ctx, config, func() (bool, error) {
 		_, err := s.Get(ctx, name)
 		if errors.Is(err, rest.ErrNotFound) {
-			// Resource deleted successfully
 			return true, nil
 		}
-		// Still exists, keep polling
+		return false, nil
+	})
+}
+
+// WaitForDeleted polls until the VPC returns 404 (deleted).
+func (s *VirtualPrivateCloudsService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "virtual_private_cloud"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
+// WaitForDeleted polls until the subnet returns 404 (deleted).
+func (s *SubnetsService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "subnet"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
 		return false, nil
 	})
 }

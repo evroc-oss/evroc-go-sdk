@@ -35,6 +35,25 @@ const (
 	ProjectStatusConditionsItemStatusUnknown ProjectStatusConditionsItemStatus = "Unknown"
 )
 
+// Defines values for ServiceaccountStatusConditionsItemStatus.
+const (
+	ServiceaccountStatusConditionsItemStatusFalse   ServiceaccountStatusConditionsItemStatus = "False"
+	ServiceaccountStatusConditionsItemStatusTrue    ServiceaccountStatusConditionsItemStatus = "True"
+	ServiceaccountStatusConditionsItemStatusUnknown ServiceaccountStatusConditionsItemStatus = "Unknown"
+)
+
+// Defines values for ServiceaccountcredentialSpecType.
+const (
+	Rs256Jwt ServiceaccountcredentialSpecType = "rs256-jwt"
+)
+
+// Defines values for ServiceaccountcredentialStatusConditionsItemStatus.
+const (
+	ServiceaccountcredentialStatusConditionsItemStatusFalse   ServiceaccountcredentialStatusConditionsItemStatus = "False"
+	ServiceaccountcredentialStatusConditionsItemStatusTrue    ServiceaccountcredentialStatusConditionsItemStatus = "True"
+	ServiceaccountcredentialStatusConditionsItemStatusUnknown ServiceaccountcredentialStatusConditionsItemStatus = "Unknown"
+)
+
 // BaseMetadataResponse Common metadata fields for all resource responses.
 type BaseMetadataResponse struct {
 	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
@@ -98,18 +117,6 @@ type GlobalMetadataResponse struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
-// GlobalOrgMetadataRequest defines model for GlobalOrgMetadataRequest.
-type GlobalOrgMetadataRequest struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id string `json:"id"`
-
-	// Organization Organization associated with the resource.
-	Organization *string `json:"organization,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
 // GlobalProjectMetadataRequest defines model for GlobalProjectMetadataRequest.
 type GlobalProjectMetadataRequest struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
@@ -145,8 +152,8 @@ type GlobalProjectMetadataResponse struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
 
-	// Organization Organization associated with the resource.
-	Organization *string `json:"organization,omitempty"`
+	// Project Project to which this resource belongs.
+	Project *string `json:"project,omitempty"`
 
 	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
@@ -200,11 +207,9 @@ type OrganizationPatchRequest struct {
 	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
 
 	// Kind Specifies the type of resource this object represents.
-	Kind     *Kind     `json:"kind,omitempty"`
-	Metadata *Metadata `json:"metadata,omitempty"`
-
-	// Spec ProjectSpec defines the desired state of project.
-	Spec *PatchSpec `json:"spec,omitempty"`
+	Kind     *Kind      `json:"kind,omitempty"`
+	Metadata *Metadata  `json:"metadata,omitempty"`
+	Spec     *PatchSpec `json:"spec,omitempty"`
 }
 
 // OrganizationSpec defines model for OrganizationSpec.
@@ -336,9 +341,7 @@ type PermissionSetPatchRequest struct {
 
 	// Metadata Standard metadata for global, project-scoped resource  used for PATCH operations.
 	Metadata *GlobalProjectMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec ProjectSpec defines the desired state of project.
-	Spec *PatchSpec `json:"spec,omitempty"`
+	Spec     *PatchSpec                         `json:"spec,omitempty"`
 }
 
 // PermissionSetRequest defines model for PermissionSetRequest.
@@ -445,9 +448,7 @@ type ProjectPatchRequest struct {
 
 	// Metadata Standard metadata for global resources used for PATCH operations.
 	Metadata *GlobalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec ProjectSpec defines the desired state of project.
-	Spec *PatchSpec `json:"spec,omitempty"`
+	Spec     *PatchSpec                  `json:"spec,omitempty"`
 }
 
 // ProjectRequest defines model for ProjectRequest.
@@ -517,6 +518,240 @@ type ProjectStatusConditionsItem struct {
 // ProjectStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
 type ProjectStatusConditionsItemStatus string
 
+// RevokeRequest defines model for RevokeRequest.
+type RevokeRequest struct {
+	// Reason Reason is the reason for revoking the credential.
+	Reason string `json:"reason"`
+}
+
+// Serviceaccount defines model for Serviceaccount.
+type Serviceaccount struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global project-scoped resources.
+	Metadata GlobalProjectMetadataResponse `json:"metadata"`
+	Spec     ServiceaccountSpec            `json:"spec"`
+
+	// Status ServiceAccountStatus defines the observed state of ServiceAccount.
+	Status ServiceaccountStatus `json:"status"`
+}
+
+// ServiceaccountList defines model for ServiceaccountList.
+type ServiceaccountList struct {
+	Items *[]Serviceaccount `json:"items,omitempty"`
+}
+
+// ServiceaccountPatchRequest defines model for ServiceaccountPatchRequest.
+type ServiceaccountPatchRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind *Kind `json:"kind,omitempty"`
+
+	// Metadata Standard metadata for global, project-scoped resource  used for PATCH operations.
+	Metadata *GlobalProjectMetadataRequestPatch `json:"metadata,omitempty"`
+	Spec     *PatchSpec                         `json:"spec,omitempty"`
+}
+
+// ServiceaccountRequest defines model for ServiceaccountRequest.
+type ServiceaccountRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global, project-scoped resource
+	Metadata GlobalProjectMetadataRequest `json:"metadata"`
+	Spec     ServiceaccountSpec           `json:"spec"`
+}
+
+// ServiceaccountSpec defines model for ServiceaccountSpec.
+type ServiceaccountSpec struct {
+	// Description Description is a human-readable description of the service account.
+	Description *string `json:"description,omitempty"`
+
+	// Enabled Enabled indicates whether the service account is enabled. Disabled service accounts cannot be used for authentication.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// ServiceaccountStatus ServiceAccountStatus defines the observed state of ServiceAccount.
+type ServiceaccountStatus struct {
+	// Conditions Conditions represents the state of the ServiceAccount over time.
+	Conditions *[]ServiceaccountStatusConditionsItem `json:"conditions,omitempty"`
+
+	// LastRevocationTime LastRevocationTime is the timestamp of the most recent credential revocation.
+	LastRevocationTime *time.Time `json:"lastRevocationTime,omitempty"`
+
+	// OauthClientId OAuthClientID is the identifier to be used for login in OAuth2/OIDC.
+	OauthClientId *string `json:"oauthClientId,omitempty"`
+}
+
+// ServiceaccountStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type ServiceaccountStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status ServiceaccountStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// ServiceaccountStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type ServiceaccountStatusConditionsItemStatus string
+
+// Serviceaccountcredential Response schema for a ServiceAccountCredential. Note: The privateKeyJwk field in status is a base64-encoded JSON string only populated in the CreateCredential API response.
+type Serviceaccountcredential struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global project-scoped resources.
+	Metadata GlobalProjectMetadataResponse `json:"metadata"`
+	Spec     ServiceaccountcredentialSpec  `json:"spec"`
+
+	// Status ServiceAccountCredentialStatus defines the observed state of ServiceAccountCredential.
+	Status ServiceaccountcredentialStatus `json:"status"`
+}
+
+// ServiceaccountcredentialList defines model for ServiceaccountcredentialList.
+type ServiceaccountcredentialList struct {
+	Items *[]Serviceaccountcredential `json:"items,omitempty"`
+}
+
+// ServiceaccountcredentialRequest defines model for ServiceaccountcredentialRequest.
+type ServiceaccountcredentialRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global, project-scoped resource
+	Metadata GlobalProjectMetadataRequest `json:"metadata"`
+	Spec     ServiceaccountcredentialSpec `json:"spec"`
+}
+
+// ServiceaccountcredentialSpec defines model for ServiceaccountcredentialSpec.
+type ServiceaccountcredentialSpec struct {
+	// AccountRef AccountRef is the reference to the parent ServiceAccount.
+	AccountRef ServiceaccountcredentialSpecAccountRef `json:"accountRef"`
+
+	// Description Description is a human-readable description of the credential.
+	Description *string `json:"description,omitempty"`
+
+	// ExpiresAt ExpiresAt is the timestamp when the credential expires.
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// RevocationRequest RevocationRequest is used to request revocation of this credential.
+	RevocationRequest *ServiceaccountcredentialSpecRevocationRequest `json:"revocationRequest,omitempty"`
+
+	// Rs256Jwt RS256Jwt contains the RSA key pair credential details. This field is required when type is "rs256-jwt".
+	Rs256Jwt *ServiceaccountcredentialSpecRs256Jwt `json:"rs256Jwt,omitempty"`
+
+	// Type Type is the type of credential.
+	Type ServiceaccountcredentialSpecType `json:"type"`
+}
+
+// ServiceaccountcredentialSpecType Type is the type of credential.
+type ServiceaccountcredentialSpecType string
+
+// ServiceaccountcredentialSpecAccountRef AccountRef is the reference to the parent ServiceAccount.
+type ServiceaccountcredentialSpecAccountRef struct {
+	// Fqid FQID is the fully qualified identifier of the ServiceAccount. Example: /iam/projects/abcd/serviceAccounts/sa-cicd-123
+	Fqid string `json:"fqid"`
+}
+
+// ServiceaccountcredentialSpecRevocationRequest RevocationRequest is used to request revocation of this credential.
+type ServiceaccountcredentialSpecRevocationRequest struct {
+	// Reason Reason is the reason for the revocation request.
+	Reason *string `json:"reason,omitempty"`
+
+	// Requested Requested indicates whether revocation has been requested.
+	Requested bool `json:"requested"`
+}
+
+// ServiceaccountcredentialSpecRs256Jwt RS256Jwt contains the RSA key pair credential details. This field is required when type is "rs256-jwt".
+type ServiceaccountcredentialSpecRs256Jwt struct {
+	// AccessTokenLifetime AccessTokenLifetime is the lifetime of access tokens issued for this credential, in seconds.
+	AccessTokenLifetime *int `json:"accessTokenLifetime,omitempty"`
+}
+
+// ServiceaccountcredentialStatus ServiceAccountCredentialStatus defines the observed state of ServiceAccountCredential.
+type ServiceaccountcredentialStatus struct {
+	// Conditions Conditions represents the state of the ServiceAccountCredential over time. Each condition follows the Kubernetes API conventions for a condition.
+	Conditions *[]ServiceaccountcredentialStatusConditionsItem `json:"conditions,omitempty"`
+
+	// PrivateKeyJwk PrivateKeyJWK contains the private key components as a base64-encoded JSON string. This field is only populated in the CreateCredential API response and is not stored.
+	PrivateKeyJwk *string `json:"privateKeyJwk,omitempty"`
+
+	// RevokedAt RevokedAt is the timestamp when the credential has been revoked.
+	RevokedAt *time.Time `json:"revokedAt,omitempty"`
+}
+
+// ServiceaccountcredentialStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type ServiceaccountcredentialStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status ServiceaccountcredentialStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// ServiceaccountcredentialStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type ServiceaccountcredentialStatusConditionsItemStatus string
+
 // UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
 type UserLabels map[string]string
 
@@ -533,17 +768,29 @@ type Metadata struct {
 	Id *openapi_types.UUID `json:"id,omitempty"`
 }
 
-// PatchSpec ProjectSpec defines the desired state of project.
+// PatchSpec defines model for patchSpec.
 type PatchSpec struct {
-	// Name Human-friendly name for the resource. Mutable. Not required to be unique.
-	Name *string `json:"name,omitempty"`
+	// Description Description is a human-readable description of the service account.
+	Description *string `json:"description,omitempty"`
 
-	// Organization Organization is the id of the Organization resource this project belongs to.
-	Organization *string `json:"organization,omitempty"`
+	// Enabled Enabled indicates whether the service account is enabled. Disabled service accounts cannot be used for authentication.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // GetIamV1beta1ProjectsProjectIDPermissionSetsParams defines parameters for GetIamV1beta1ProjectsProjectIDPermissionSets.
 type GetIamV1beta1ProjectsProjectIDPermissionSetsParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
+// GetIamV1beta1ProjectsProjectIDServiceAccountsParams defines parameters for GetIamV1beta1ProjectsProjectIDServiceAccounts.
+type GetIamV1beta1ProjectsProjectIDServiceAccountsParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
+// GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams defines parameters for GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials.
+type GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
@@ -562,3 +809,15 @@ type PostIamV1beta1ProjectsProjectIDPermissionSetsJSONRequestBody = PermissionSe
 
 // PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetID for application/json ContentType.
 type PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody = PermissionSetPatchRequest
+
+// PostIamV1beta1ProjectsProjectIDServiceAccountsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccounts for application/json ContentType.
+type PostIamV1beta1ProjectsProjectIDServiceAccountsJSONRequestBody = ServiceaccountRequest
+
+// PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountID for application/json ContentType.
+type PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody = ServiceaccountPatchRequest
+
+// PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials for application/json ContentType.
+type PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody = ServiceaccountcredentialRequest
+
+// PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevoke for application/json ContentType.
+type PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody = RevokeRequest

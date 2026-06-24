@@ -118,9 +118,13 @@ func runDiskExamples(ctx context.Context, client *evroc.Client) error {
 	if err != nil {
 		return fmt.Errorf("failed to create boot disk: %w", err)
 	}
+	imageRef := ""
+	if createdBootDisk.Spec.Source != nil && createdBootDisk.Spec.Source.DiskImageRef != nil {
+		imageRef = *createdBootDisk.Spec.Source.DiskImageRef
+	}
 	fmt.Printf("   ✓ Created: %s (image: %s, size: %dGB)\n",
 		createdBootDisk.Metadata.Id,
-		*createdBootDisk.Spec.DiskImageRef,
+		imageRef,
 		createdBootDisk.Spec.DiskSize.Amount)
 
 	// Example 2: Create an empty data disk
@@ -190,8 +194,8 @@ func runDiskExamples(ctx context.Context, client *evroc.Client) error {
 			status = "Ready"
 		}
 		imageInfo := "empty"
-		if disk.Spec.DiskImageRef != nil {
-			imageInfo = *disk.Spec.DiskImageRef
+		if disk.Spec.Source != nil && disk.Spec.Source.DiskImageRef != nil {
+			imageInfo = *disk.Spec.Source.DiskImageRef
 		}
 		// Use Status.DiskSize for actual allocated size (Spec.DiskSize can be 0 for platform default)
 		sizeInfo := "unknown"
@@ -295,6 +299,7 @@ func runVMExamples(ctx context.Context, client *evroc.Client) error {
 	simpleVM := compute.NewVirtualMachineBuilder("sdk-vm-simple").
 		WithBootDisk(client.Compute().DiskRef("sdk-boot-disk-2")).
 		WithSize(string(compute.VMSizeA1aXS)).
+		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		WithSSHKey("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeENOwB0QwUEicJGrFxt44yiShgBWzANhpE/5gNw041 user@example.com").
 		Build()
@@ -321,6 +326,7 @@ runcmd:
 		WithBootDisk(client.Compute().DiskRef("sdk-boot-disk")).
 		WithDataDisk(client.Compute().DiskRef("sdk-data-disk")).
 		WithSize(string(compute.VMSizeC1aM)).
+		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		WithPlacementGroup(client.Compute().PlacementGroupRef("sdk-pg-spread")).
 		WithSSHKey("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeENOwB0QwUEicJGrFxt44yiShgBWzANhpE/5gNw041 user@example.com").
@@ -341,6 +347,7 @@ runcmd:
 	stoppedVM := compute.NewVirtualMachineBuilder("sdk-vm-stopped").
 		WithBootDisk(client.Compute().DiskRef("sdk-data-disk-2")). // Using data disk as boot for demo
 		WithSize(string(compute.VMSizeA1aXS)).
+		WithSubnet(client.Compute().DefaultSubnetRef("a")).
 		WithZone("a").
 		WithRunning(false). // Create in stopped state
 		Build()

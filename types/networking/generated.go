@@ -50,11 +50,23 @@ const (
 	Pending SecurityGroupStatusMembersItemStatus = "Pending"
 )
 
+// Defines values for SubnetSpecStackType.
+const (
+	SubnetSpecStackTypeDualStack SubnetSpecStackType = "dual-stack"
+	SubnetSpecStackTypeIpv6Only  SubnetSpecStackType = "ipv6-only"
+)
+
 // Defines values for SubnetStatusConditionsItemStatus.
 const (
 	SubnetStatusConditionsItemStatusFalse   SubnetStatusConditionsItemStatus = "False"
 	SubnetStatusConditionsItemStatusTrue    SubnetStatusConditionsItemStatus = "True"
 	SubnetStatusConditionsItemStatusUnknown SubnetStatusConditionsItemStatus = "Unknown"
+)
+
+// Defines values for VirtualPrivateCloudSpecStackType.
+const (
+	VirtualPrivateCloudSpecStackTypeDualStack VirtualPrivateCloudSpecStackType = "dual-stack"
+	VirtualPrivateCloudSpecStackTypeIpv6Only  VirtualPrivateCloudSpecStackType = "ipv6-only"
 )
 
 // Defines values for VirtualPrivateCloudStatusConditionsItemStatus.
@@ -266,6 +278,9 @@ type SecurityGroupRequest struct {
 type SecurityGroupSpec struct {
 	// Rules The rules for this security group.
 	Rules *[]SecurityGroupSpecRulesItem `json:"rules,omitempty"`
+
+	// VpcRef VpcRef is the reference to the VPC that the security group is a member of.
+	VpcRef string `json:"vpcRef"`
 }
 
 // SecurityGroupSpecRulesItem defines model for SecurityGroupSpecRulesItem.
@@ -297,7 +312,8 @@ type SecurityGroupSpecRulesItem struct {
 		// SubnetRef The subnet that traffic is allowed to/from.
 		SubnetRef *string `json:"subnetRef,omitempty"`
 
-		// VpcRef The VPC that traffic is allowed to/from.
+		// VpcRef The virtual private cloud that traffic is allowed to/from.  This must match the VPC
+		// referenced on the security group itself (the VPC that the security group is a member of).
 		VpcRef *string `json:"vpcRef,omitempty"`
 	} `json:"remote"`
 }
@@ -310,7 +326,7 @@ type SecurityGroupSpecRulesItemProtocol string
 
 // SecurityGroupSpecRulesItemAddress The IP address or CIDR that traffic is allowed to/from.
 type SecurityGroupSpecRulesItemAddress struct {
-	// IpAddressOrCIDR The IP address or CIDR that traffic is allowed to/from. Can be any IPv4 address with any valid mask.
+	// IpAddressOrCIDR The IP address or CIDR (IPv4 or IPv6) that traffic is allowed to/from.
 	IpAddressOrCIDR string `json:"ipAddressOrCIDR"`
 }
 
@@ -383,15 +399,40 @@ type SubnetList struct {
 	Items *[]Subnet `json:"items,omitempty"`
 }
 
+// SubnetRequest defines model for SubnetRequest.
+type SubnetRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for region-scoped resource
+	Metadata RegionalMetadataRequest `json:"metadata"`
+	Spec     SubnetSpec              `json:"spec"`
+}
+
 // SubnetSpec defines model for SubnetSpec.
 type SubnetSpec struct {
-	// Ipv4CidrBlock An IPv4 CIDR block.
-	Ipv4CidrBlock string `json:"ipv4CidrBlock"`
+	// Ipv4CidrBlock An IPv4 CIDR block.  Must be contained within its VPC's IPv4 CIDR Block, and must have
+	// a prefix between /16 and /29.
+	Ipv4CidrBlock *string `json:"ipv4CidrBlock,omitempty"`
 
 	// Placement Placement defines the placement requirements for this Subnet.
 	Placement SubnetSpecPlacement `json:"placement"`
+
+	// StackType The stack type of this Subnet.  Can either be "dual-stack", meaning that both IPv4 and IPv6
+	// addresses are provisioned, or "ipv6-only".  If "dual-stack", an IPv4 CIDR Block must be
+	// specified for the Subnet.
+	StackType SubnetSpecStackType `json:"stackType"`
 	VpcRef    string              `json:"vpcRef"`
 }
+
+// SubnetSpecStackType The stack type of this Subnet.  Can either be "dual-stack", meaning that both IPv4 and IPv6
+// addresses are provisioned, or "ipv6-only".  If "dual-stack", an IPv4 CIDR Block must be
+// specified for the Subnet.
+type SubnetSpecStackType string
 
 // SubnetSpecPlacement Placement defines the placement requirements for this Subnet.
 type SubnetSpecPlacement struct {
@@ -401,11 +442,17 @@ type SubnetSpecPlacement struct {
 
 // SubnetStatus defines model for SubnetStatus.
 type SubnetStatus struct {
-	// AvailableIPv4AddressCount availableIPv4AddressCount is a count of the number of IPv4 addresses not yet assigned in this subnet.
+	// AssignedIPv6GUABlock The range of publicly routable IPv6 addresses assigned to this Subnet.
+	AssignedIPv6GUABlock *string `json:"assignedIPv6GUABlock,omitempty"`
+
+	// AttachmentRefs attachmentRefs is a list of references to resources attached to this Subnet.
+	AttachmentRefs *[]string `json:"attachmentRefs,omitempty"`
+
+	// AvailableIPv4AddressCount availableIPv4AddressCount is a count of the number of IPv4 addresses not yet assigned in this Subnet.
 	AvailableIPv4AddressCount *int `json:"availableIPv4AddressCount,omitempty"`
 
 	// AvailableIPv4Ranges availableIPv4Ranges is a list of either single IPs (e.g. "10.0.0.2") or IP ranges ("10.0.0.4-10.0.0.7") of IPv4
-	// addresses currently not in use in this subnet.
+	// addresses currently not in use in this Subnet.
 	AvailableIPv4Ranges *[]string `json:"availableIPv4Ranges,omitempty"`
 
 	// Conditions The state of the Subnet over time.
@@ -416,13 +463,21 @@ type SubnetStatus struct {
 	// Placement Placement defines the placement requirements for this Subnet.
 	Placement *SubnetStatusPlacement `json:"placement,omitempty"`
 
-	// UsingIPv4AddressCount usingIPv4AddressCount is a count of the number of IPv4 addresses currently in use in this subnet. Deletion of
-	// this subnet will be blocked if there are IPs in the subnet in use. Those resources need to be deleted first.
+	// UsingIPv4AddressCount usingIPv4AddressCount is a count of the number of IPv4 addresses currently in use in this Subnet. Deletion of
+	// this Subnet will be blocked if there are IPs in the Subnet in use. Those resources need to be deleted first.
 	UsingIPv4AddressCount *int `json:"usingIPv4AddressCount,omitempty"`
 
 	// UsingIPv4Ranges usingIPv4Ranges is a list of either single IPs (e.g. "10.0.0.2") or IP ranges ("10.0.0.4-10.0.0.7") of IPv4
-	// addresses currently in use  in this subnet.
+	// addresses currently in use in this Subnet.
 	UsingIPv4Ranges *[]string `json:"usingIPv4Ranges,omitempty"`
+
+	// UsingIPv6AddressCount usingIPv6AddressCount is a count of the number of IPv6 addresses currently in use in this Subnet. Deletion of
+	// this Subnet will be blocked if there are IPs in the Subnet in use. Those resources need to be deleted first.
+	UsingIPv6AddressCount *int `json:"usingIPv6AddressCount,omitempty"`
+
+	// UsingIPv6Ranges UsingIPv6Ranges is a list of either single IPs (e.g. "2001:db8::2") or IP ranges
+	// ("2001:db8::4-2001:db8::7") of IPv6 addresses currently in use in this Subnet.
+	UsingIPv6Ranges *[]string `json:"usingIPv6Ranges,omitempty"`
 }
 
 // SubnetStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
@@ -489,15 +544,57 @@ type VirtualPrivateCloudList struct {
 	Items *[]VirtualPrivateCloud `json:"items,omitempty"`
 }
 
+// VirtualPrivateCloudRequest defines model for VirtualPrivateCloudRequest.
+type VirtualPrivateCloudRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for region-scoped resource
+	Metadata RegionalMetadataRequest `json:"metadata"`
+	Spec     VirtualPrivateCloudSpec `json:"spec"`
+}
+
 // VirtualPrivateCloudSpec defines model for VirtualPrivateCloudSpec.
-type VirtualPrivateCloudSpec = map[string]interface{}
+type VirtualPrivateCloudSpec struct {
+	// Ipv4CidrBlocks The IPv4 CIDR Blocks to assign to this VPC.  Each of these blocks must be contained must be contained
+	// within one of the three RFC 1918 private IP address ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16.
+	// Defaults to ["10.0.0.0/16"] if not set.
+	Ipv4CidrBlocks *[]string `json:"ipv4CidrBlocks,omitempty"`
+
+	// StackType The stack type of this VPC.  Can either be "dual-stack", meaning that both IPv4 and IPv6
+	// addresses are provisioned, or "ipv6-only".  Defaults to dual-stack behaviour if not set.
+	StackType *VirtualPrivateCloudSpecStackType `json:"stackType,omitempty"`
+}
+
+// VirtualPrivateCloudSpecStackType The stack type of this VPC.  Can either be "dual-stack", meaning that both IPv4 and IPv6
+// addresses are provisioned, or "ipv6-only".  Defaults to dual-stack behaviour if not set.
+type VirtualPrivateCloudSpecStackType string
 
 // VirtualPrivateCloudStatus defines model for VirtualPrivateCloudStatus.
 type VirtualPrivateCloudStatus struct {
+	// AssignedIPv4CidrBlocks The IPv4 CIDR Blocks that are assigned to this VPC.
+	AssignedIPv4CidrBlocks *[]string `json:"assignedIPv4CidrBlocks,omitempty"`
+
+	// AssignedIPv6GUABlock The range of publicly routable IPv6 addresses assigned to this VPC.
+	AssignedIPv6GUABlock *string `json:"assignedIPv6GUABlock,omitempty"`
+
+	// AvailableIPv4CidrBlocks The CIDRs that are available for use (not allocated) on this VPC.
+	AvailableIPv4CidrBlocks *[]string `json:"availableIPv4CidrBlocks,omitempty"`
+
 	// Conditions The state of the Virtual Private Cloud over time.
 	// Each condition follows the Kubernetes API conventions for a condition:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
 	Conditions *[]VirtualPrivateCloudStatusConditionsItem `json:"conditions,omitempty"`
+
+	// StackType The stack type of this VPC.
+	StackType *string `json:"stackType,omitempty"`
+
+	// Subnets The current status of Subnet CIDRs in this VPC.
+	Subnets *VirtualPrivateCloudStatusSubnets `json:"subnets,omitempty"`
 }
 
 // VirtualPrivateCloudStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
@@ -532,6 +629,45 @@ type VirtualPrivateCloudStatusConditionsItem struct {
 // VirtualPrivateCloudStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
 type VirtualPrivateCloudStatusConditionsItemStatus string
 
+// VirtualPrivateCloudStatusSubnets The current status of Subnet CIDRs in this VPC.
+type VirtualPrivateCloudStatusSubnets struct {
+	// AllocatedSubnets Subnets in this VPC which are programmed and active.
+	AllocatedSubnets *[]struct {
+		// Ipv4CidrBlock IPv4 CIDR block associated with this Subnet.
+		Ipv4CidrBlock *string `json:"ipv4CidrBlock,omitempty"`
+
+		// Ipv6GUABlock IPv6 GUA CIDR block associated with this Subnet.
+		Ipv6GUABlock *string `json:"ipv6GUABlock,omitempty"`
+
+		// Placement The Placement of the Subnet.
+		Placement *VirtualPrivateCloudStatusSubnetsPlacement `json:"placement,omitempty"`
+
+		// SubnetRef The Subnet.
+		SubnetRef *string `json:"subnetRef,omitempty"`
+	} `json:"allocatedSubnets,omitempty"`
+
+	// InvalidSubnets Subnets in this VPC which are invalid and unable to be programmed.
+	InvalidSubnets *[]struct {
+		// Ipv4CidrBlock IPv4 CIDR block associated with this Subnet.
+		Ipv4CidrBlock *string `json:"ipv4CidrBlock,omitempty"`
+
+		// Ipv6GUABlock IPv6 GUA CIDR block associated with this Subnet.
+		Ipv6GUABlock *string `json:"ipv6GUABlock,omitempty"`
+
+		// Placement The Placement of the Subnet.
+		Placement *VirtualPrivateCloudStatusSubnetsPlacement `json:"placement,omitempty"`
+
+		// SubnetRef The Subnet.
+		SubnetRef *string `json:"subnetRef,omitempty"`
+	} `json:"invalidSubnets,omitempty"`
+}
+
+// VirtualPrivateCloudStatusSubnetsPlacement The Placement of the Subnet.
+type VirtualPrivateCloudStatusSubnetsPlacement struct {
+	// Zone The zone this Subnet should be deployed to.
+	Zone *string `json:"zone,omitempty"`
+}
+
 // ApiVersion Identifies the version of the API schema used for this resource.
 // It should be the same than the version in the path, otherwise the request will be rejected.
 type ApiVersion = string
@@ -539,38 +675,50 @@ type ApiVersion = string
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsParams defines parameters for GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPs.
-type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsParams struct {
+// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPs.
+type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsParams defines parameters for GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroups.
-type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsParams struct {
+// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroups.
+type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSubnetsParams defines parameters for GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSubnets.
-type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSubnetsParams struct {
+// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnets.
+type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams defines parameters for GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameVirtualPrivateClouds.
-type GetNetworkingV1beta1ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams struct {
+// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateClouds.
+type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody defines body for PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPs for application/json ContentType.
-type PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody = PublicIPRequest
+// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPs for application/json ContentType.
+type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody = PublicIPRequest
 
-// PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody defines body for PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPID for application/json ContentType.
-type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody = PublicIPRequest
+// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPID for application/json ContentType.
+type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody = PublicIPRequest
 
-// PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody defines body for PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroups for application/json ContentType.
-type PostNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody = SecurityGroupRequest
+// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroups for application/json ContentType.
+type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody = SecurityGroupRequest
 
-// PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody defines body for PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupID for application/json ContentType.
-type PatchNetworkingV1beta1ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody = SecurityGroupRequest
+// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupID for application/json ContentType.
+type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody = SecurityGroupRequest
+
+// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnets for application/json ContentType.
+type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsJSONRequestBody = SubnetRequest
+
+// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetID for application/json ContentType.
+type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetIDJSONRequestBody = SubnetRequest
+
+// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateClouds for application/json ContentType.
+type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsJSONRequestBody = VirtualPrivateCloudRequest
+
+// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudID for application/json ContentType.
+type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudIDJSONRequestBody = VirtualPrivateCloudRequest

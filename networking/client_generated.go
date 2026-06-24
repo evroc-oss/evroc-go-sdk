@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	apiVersion = "v1beta1"
+	apiVersion = "v1beta2"
 
 	// Resource type constants
 	resourcePublicIPs            = "publicIPs"

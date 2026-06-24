@@ -4,7 +4,8 @@
 // Package networking provides access to the evroc Networking API.
 //
 // The Networking API enables you to manage virtual private clouds (VPCs),
-// subnets, security groups, and public IP addresses in the evroc Cloud Platform.
+// subnets, security groups, and public IP addresses
+// in the evroc Cloud Platform.
 //
 // # Resources
 //

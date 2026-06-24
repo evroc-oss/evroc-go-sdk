@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Package main demonstrates comprehensive networking API usage.
-// Covers: PublicIPs, SecurityGroups, VPCs (list only), Subnets (list only)
+// Covers: PublicIPs, SecurityGroups, VPCs, Subnets
 package main
 
 import (
@@ -67,13 +67,17 @@ func cleanupResources(ctx context.Context, client *evroc.Client) {
 	}
 
 	// Delete security groups
-	securityGroupsToDelete := []string{"sdk-sg-ssh", "sdk-sg-web", "sdk-sg-custom", "sdk-sg-database"}
+	securityGroupsToDelete := []string{"sdk-sg-ssh", "sdk-sg-web", "sdk-sg-custom", "sdk-sg-database", "sdk-sg-custom-vpc"}
 	for _, sgName := range securityGroupsToDelete {
 		err := client.Networking().SecurityGroups().Delete(ctx, sgName)
 		if err == nil {
 			fmt.Printf("   ✓ Deleted %s\n", sgName)
 		}
 	}
+
+	// Delete custom subnets/VPCs (subnet first, then VPC)
+	_ = client.Networking().Subnets().Delete(ctx, "sdk-custom-subnet")
+	_ = client.Networking().VirtualPrivateClouds().Delete(ctx, "sdk-custom-vpc")
 }
 
 // runPublicIPExamples demonstrates all public IP operations.
@@ -272,54 +276,91 @@ func runSecurityGroupExamples(ctx context.Context, client *evroc.Client) error {
 	return nil
 }
 
-// runVPCAndSubnetExamples demonstrates VPC and Subnet operations (read-only).
+// runVPCAndSubnetExamples demonstrates VPC and Subnet operations.
 func runVPCAndSubnetExamples(ctx context.Context, client *evroc.Client) error {
-	fmt.Println("\n--- VPC and Subnet Examples (Read-Only) ---")
+	fmt.Println("\n--- VPC and Subnet Examples ---")
 
-	// Example 1: List all VPCs
-	fmt.Println("\n1. Listing all VPCs...")
+	// Example 1: List the default VPC (every project gets one automatically)
+	fmt.Println("\n1. Listing VPCs...")
 	vpcs, err := client.Networking().VirtualPrivateClouds().List(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list VPCs: %w", err)
 	}
-	fmt.Printf("   Found %d VPCs:\n", len(vpcs.Items))
+	fmt.Printf("   Found %d VPC(s):\n", len(vpcs.Items))
 	for _, vpc := range vpcs.Items {
-		fmt.Printf("   - %s\n", vpc.Metadata.Id)
-	}
-
-	// Example 2: Get a specific VPC (if any exist)
-	if len(vpcs.Items) > 0 {
-		fmt.Println("\n2. Getting specific VPC...")
-		vpcName := vpcs.Items[0].Metadata.Id
-		vpc, err := client.Networking().VirtualPrivateClouds().Get(ctx, vpcName)
-		if err != nil {
-			return fmt.Errorf("failed to get VPC: %w", err)
+		cidrs := "none"
+		if vpc.Status.AssignedIPv4CidrBlocks != nil {
+			cidrs = fmt.Sprintf("%v", *vpc.Status.AssignedIPv4CidrBlocks)
 		}
-		fmt.Printf("   ✓ VPC: %s\n", vpc.Metadata.Id)
-		fmt.Printf("     Spec: %+v\n", vpc.Spec)
+		fmt.Printf("   - %s (IPv4: %s)\n", vpc.Metadata.Id, cidrs)
 	}
 
-	// Example 3: List all subnets
-	fmt.Println("\n3. Listing all subnets...")
+	// Example 2: Get the default VPC
+	fmt.Println("\n2. Getting default VPC...")
+	defaultVPC, err := client.Networking().VirtualPrivateClouds().Get(ctx, "default-se-sto")
+	if err != nil {
+		return fmt.Errorf("failed to get default VPC: %w", err)
+	}
+	fmt.Printf("   ✓ Default VPC: %s\n", defaultVPC.Metadata.Id)
+
+	// Example 3: Create a custom VPC (may require elevated permissions)
+	fmt.Println("\n3. Creating custom VPC...")
+	customVPC, err := networking.NewVPCBuilder("sdk-custom-vpc").
+		WithIPv4CIDRBlock("10.200.0.0/16").
+		WithDualStack().
+		Create(ctx, client.Networking().VirtualPrivateClouds())
+	if err != nil {
+		fmt.Printf("   ⚠ VPC create not permitted: %v\n", err)
+		fmt.Println("   (VPC creation may be restricted to platform admins)")
+	} else {
+		fmt.Printf("   ✓ Created VPC: %s\n", customVPC.Metadata.Id)
+		defer client.Networking().VirtualPrivateClouds().Delete(ctx, "sdk-custom-vpc")
+
+		// Example 4: Create a subnet in the custom VPC
+		fmt.Println("\n4. Creating subnet in custom VPC...")
+		vpcRef := client.Networking().VPCRef("sdk-custom-vpc")
+		subnet, err := networking.NewSubnetBuilder("sdk-custom-subnet").
+			WithVPCRef(vpcRef).
+			WithIPv4CIDRBlock("10.200.1.0/24").
+			WithDualStack().
+			WithZone("a").
+			Create(ctx, client.Networking().Subnets())
+		if err != nil {
+			fmt.Printf("   ⚠ Subnet create failed: %v\n", err)
+		} else {
+			fmt.Printf("   ✓ Created subnet: %s\n", subnet.Metadata.Id)
+			defer client.Networking().Subnets().Delete(ctx, "sdk-custom-subnet")
+		}
+
+		// Example 5: Create a security group in the custom VPC
+		fmt.Println("\n5. Creating security group in custom VPC...")
+		sg, err := networking.NewSecurityGroupBuilder("sdk-sg-custom-vpc").
+			WithVPCRef(vpcRef).
+			AllowSSH().
+			AllowAllEgress().
+			Create(ctx, client.Networking().SecurityGroups())
+		if err != nil {
+			fmt.Printf("   ⚠ Security group create failed: %v\n", err)
+		} else {
+			fmt.Printf("   ✓ Created security group: %s (in VPC %s)\n", sg.Metadata.Id, sg.Spec.VpcRef)
+			defer client.Networking().SecurityGroups().Delete(ctx, "sdk-sg-custom-vpc")
+		}
+	}
+
+	// Example 6: List default subnets
+	fmt.Println("\n6. Listing subnets...")
 	subnets, err := client.Networking().Subnets().List(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list subnets: %w", err)
 	}
-	fmt.Printf("   Found %d subnets:\n", len(subnets.Items))
+	fmt.Printf("   Found %d subnet(s):\n", len(subnets.Items))
 	for _, subnet := range subnets.Items {
-		fmt.Printf("   - %s\n", subnet.Metadata.Id)
-	}
-
-	// Example 4: Get a specific subnet (if any exist)
-	if len(subnets.Items) > 0 {
-		fmt.Println("\n4. Getting specific subnet...")
-		subnetName := subnets.Items[0].Metadata.Id
-		subnet, err := client.Networking().Subnets().Get(ctx, subnetName)
-		if err != nil {
-			return fmt.Errorf("failed to get subnet: %w", err)
+		ipv4 := "none"
+		if subnet.Spec.Ipv4CidrBlock != nil {
+			ipv4 = *subnet.Spec.Ipv4CidrBlock
 		}
-		fmt.Printf("   ✓ Subnet: %s\n", subnet.Metadata.Id)
-		fmt.Printf("     Spec: %+v\n", subnet.Spec)
+		fmt.Printf("   - %s (VPC: %s, IPv4: %s, stack: %s)\n",
+			subnet.Metadata.Id, subnet.Spec.VpcRef, ipv4, subnet.Spec.StackType)
 	}
 
 	return nil

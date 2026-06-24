@@ -54,6 +54,7 @@ import (
 	"github.com/evroc-oss/evroc-go-sdk/internal/auth"
 	"github.com/evroc-oss/evroc-go-sdk/internal/rest"
 	"github.com/evroc-oss/evroc-go-sdk/internal/versions"
+	"github.com/evroc-oss/evroc-go-sdk/loadbalancer"
 	"github.com/evroc-oss/evroc-go-sdk/metrics"
 	"github.com/evroc-oss/evroc-go-sdk/networking"
 	"github.com/evroc-oss/evroc-go-sdk/quotas"
@@ -69,12 +70,13 @@ type Client struct {
 	metrics          *metrics.Manager
 
 	// API clients
-	compute    *compute.Client
-	networking *networking.Client
-	iam        *iam.Client
-	storage    *storage.Client
-	quotas     *quotas.Client
-	think      *think.Client
+	compute      *compute.Client
+	networking   *networking.Client
+	iam          *iam.Client
+	storage      *storage.Client
+	quotas       *quotas.Client
+	think        *think.Client
+	loadbalancer *loadbalancer.Client
 }
 
 // Option is a functional option for configuring the Client.
@@ -268,6 +270,7 @@ func (c *Client) initAPIClients(ctx context.Context) error {
 	c.storage = storage.NewClient(restClient, c).WithMetrics(c.metrics)
 	c.quotas = quotas.NewClient(restClient, c).WithMetrics(c.metrics)
 	c.think = think.NewClient(restClient, c).WithMetrics(c.metrics)
+	c.loadbalancer = loadbalancer.NewClient(restClient, c).WithMetrics(c.metrics)
 
 	return nil
 }
@@ -336,6 +339,17 @@ func (c *Client) Quotas() *quotas.Client {
 //   - Dedicated Instances
 func (c *Client) Think() *think.Client {
 	return c.think
+}
+
+// LoadBalancer returns the LoadBalancer API client
+//
+// Provides access to:
+//   - Load Balancers (simplified facade)
+//   - Backend Pools
+//   - Backend Services
+//   - L4 Routes
+func (c *Client) LoadBalancer() *loadbalancer.Client {
+	return c.loadbalancer
 }
 
 // Config returns the current configuration.
