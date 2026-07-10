@@ -18,6 +18,7 @@ const (
 	resourceOrganizations             = "organizations"
 	resourcePermissionSets            = "permissionSets"
 	resourceProjects                  = "projects"
+	resourceRoleBindings              = "roleBindings"
 	resourceServiceAccountCredentials = "serviceAccountCredentials"
 	resourceServiceAccounts           = "serviceAccounts"
 )
@@ -49,6 +50,10 @@ type (
 
 	ProjectList struct {
 		Items []iam.Project `json:"items,omitempty"`
+	}
+
+	RoleBindingList struct {
+		Items []iam.RoleBindingResponse `json:"items,omitempty"`
 	}
 
 	ServiceaccountcredentialList struct {
@@ -84,15 +89,14 @@ func (c *Client) Projects() *ProjectsService {
 	return &ProjectsService{client: c}
 }
 
-// RoleBindings returns the RoleBindings service for assigning and revoking roles.
+// RoleBindings returns the RoleBindings service
 func (c *Client) RoleBindings() *RoleBindingsService {
 	return &RoleBindingsService{client: c}
 }
 
-// ServiceAccountCredentials returns the ServiceAccountCredentials service
-// scoped to the given parent service account.
-func (c *Client) ServiceAccountCredentials(serviceAccountID string) *ServiceAccountCredentialsService {
-	return &ServiceAccountCredentialsService{client: c, serviceAccountID: serviceAccountID}
+// ServiceAccountCredentials returns the ServiceAccountCredentials service scoped to the given parent ServiceAccounts.
+func (c *Client) ServiceAccountCredentials(parentID string) *ServiceAccountCredentialsService {
+	return &ServiceAccountCredentialsService{client: c, parentID: parentID}
 }
 
 // ServiceAccounts returns the ServiceAccounts service
