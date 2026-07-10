@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-08
+
+### Added
+- **IAM ServiceAccounts**: create, get, list, patch, delete service accounts
+- **IAM ServiceAccountCredentials**: create, get, list, delete credentials (private key returned only at creation)
+- **LoadBalancer BackendService**: `ipProtocolSelection` field (IPv4/IPv6)
+- **Compute Snapshots**: Patch operation
+- **Storage BucketServiceAccountSecrets**: migrated from handwritten to codegen
+- New example: `service-account-lifecycle` — full SA + credential creation flow
+- E2E test for IAM ServiceAccount/Credential lifecycle
+
+### Breaking Changes
+- `ServiceAccountCredentials()` now requires a `serviceAccountID` parameter
+- Removed `BackendserviceSpecHealthCheck.Https` and related types
+- Removed `VirtualMachineSpec.LoadBalancerMemberships`
+
 ## [0.6.0] - 2026-06-18
 
 ### Added
@@ -83,3 +99,4 @@ Public release
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
+[0.7.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.0

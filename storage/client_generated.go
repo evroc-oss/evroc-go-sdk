@@ -15,9 +15,10 @@ const (
 	apiVersion = "v1"
 
 	// Resource type constants
-	resourceBucketServiceAccounts = "bucketServiceAccounts"
-	resourceBuckets               = "buckets"
-	resourceFileStores            = "fileStores"
+	resourceBucketServiceAccountSecrets = "bucketServiceAccountSecrets"
+	resourceBucketServiceAccounts       = "bucketServiceAccounts"
+	resourceBuckets                     = "buckets"
+	resourceFileStores                  = "fileStores"
 )
 
 // ContextProvider provides access to context configuration
@@ -37,6 +38,10 @@ type Client struct {
 
 // List response types
 type (
+	BucketserviceaccountsecretList struct {
+		Items []storage.Bucketserviceaccountsecret `json:"items,omitempty"`
+	}
+
 	BucketServiceAccountList struct {
 		Items []storage.BucketServiceAccount `json:"items,omitempty"`
 	}
@@ -57,6 +62,11 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 		path:   rest.NewServicePath("storage", apiVersion),
 		parent: parent,
 	}
+}
+
+// BucketServiceAccountSecrets returns the BucketServiceAccountSecrets service
+func (c *Client) BucketServiceAccountSecrets() *BucketServiceAccountSecretsService {
+	return &BucketServiceAccountSecretsService{client: c}
 }
 
 // BucketServiceAccounts returns the BucketServiceAccounts service

@@ -54,3 +54,13 @@ func (s *SnapshotsService) List(ctx context.Context, filters ...rest.ListFilter)
 		resourceSnapshots)
 	return rest.ListWithFilters[*SnapshotList](ctx, s.client.rest, path, filters...)
 }
+
+// Patch partially updates a Snapshot using project/region from config
+func (s *SnapshotsService) Patch(ctx context.Context, name string, patch interface{}) (*compute.Snapshot, error) {
+	path := s.client.path.ResourcePath(
+		s.client.parent.DefaultProject(),
+		s.client.parent.DefaultRegion(),
+		resourceSnapshots,
+		name)
+	return rest.PatchResource[*compute.Snapshot](ctx, s.client.rest, path, patch)
+}
