@@ -16,16 +16,16 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
-// Defines values for BackendserviceSpecHealthCheckHttpMethod.
+// Defines values for BackendserviceSpecIpProtocolSelection.
 const (
-	BackendserviceSpecHealthCheckHttpMethodGET  BackendserviceSpecHealthCheckHttpMethod = "GET"
-	BackendserviceSpecHealthCheckHttpMethodHEAD BackendserviceSpecHealthCheckHttpMethod = "HEAD"
+	IPv4 BackendserviceSpecIpProtocolSelection = "IPv4"
+	IPv6 BackendserviceSpecIpProtocolSelection = "IPv6"
 )
 
-// Defines values for BackendserviceSpecHealthCheckHttpsMethod.
+// Defines values for BackendserviceSpecHealthCheckHttpMethod.
 const (
-	BackendserviceSpecHealthCheckHttpsMethodGET  BackendserviceSpecHealthCheckHttpsMethod = "GET"
-	BackendserviceSpecHealthCheckHttpsMethodHEAD BackendserviceSpecHealthCheckHttpsMethod = "HEAD"
+	GET  BackendserviceSpecHealthCheckHttpMethod = "GET"
+	HEAD BackendserviceSpecHealthCheckHttpMethod = "HEAD"
 )
 
 // Defines values for BackendserviceStatusConditionsItemStatus.
@@ -139,12 +139,18 @@ type BackendserviceSpec struct {
 	// HealthCheck HealthCheck configures active health checking for this BackendService.
 	HealthCheck *BackendserviceSpecHealthCheck `json:"healthCheck,omitempty"`
 
+	// IpProtocolSelection IPProtocolSelection controls which IP address type is used for backends.
+	IpProtocolSelection *BackendserviceSpecIpProtocolSelection `json:"ipProtocolSelection,omitempty"`
+
 	// Port The listening port for this Backend Service.
 	Port int32 `json:"port"`
 
 	// ProxyProtocol Enables proxy protocol for connections to this Backend Service.
 	ProxyProtocol *bool `json:"proxyProtocol,omitempty"`
 }
+
+// BackendserviceSpecIpProtocolSelection IPProtocolSelection controls which IP address type is used for backends.
+type BackendserviceSpecIpProtocolSelection string
 
 // BackendserviceSpecHealthCheck HealthCheck configures active health checking for this BackendService.
 type BackendserviceSpecHealthCheck struct {
@@ -166,25 +172,8 @@ type BackendserviceSpecHealthCheck struct {
 		Path string `json:"path"`
 	} `json:"http,omitempty"`
 
-	// Https HTTPS configures an HTTPS health check.
-	Https *struct {
-		// ExpectedStatuses ExpectedStatuses is the list of HTTP response status codes considered healthy.
-		ExpectedStatuses *[]int32 `json:"expectedStatuses,omitempty"`
-
-		// Host Host is the Host header value.
-		Host *string `json:"host,omitempty"`
-
-		// Method Method is the HTTP method used for health checks.
-		Method *BackendserviceSpecHealthCheckHttpsMethod `json:"method,omitempty"`
-
-		// Path Path is the absolute request path.
-		Path string `json:"path"`
-
-		// Tls TLS configures health-check-only TLS behavior.
-		Tls *BackendserviceSpecHealthCheckTls `json:"tls,omitempty"`
-	} `json:"https,omitempty"`
-
-	// Interval Interval is the duration between health check attempts.
+	// Interval Interval is the duration between health check attempts. The value must match the regex
+	// `^([0-9]{1,5}(h|m|s|ms)){1,4}$`.
 	Interval *string `json:"interval,omitempty"`
 
 	// TargetPort TargetPort is the backend endpoint port to check. Defaults to BackendService.spec.port.
@@ -199,7 +188,8 @@ type BackendserviceSpecHealthCheck struct {
 		Send *string `json:"send,omitempty"`
 	} `json:"tcp,omitempty"`
 
-	// Timeout Timeout is the duration allowed for one health check attempt.
+	// Timeout Timeout is the duration allowed for one health check attempt. The value must match the regex
+	// `^([0-9]{1,5}(h|m|s|ms)){1,4}$`.
 	Timeout *string `json:"timeout,omitempty"`
 
 	// UnhealthyThreshold UnhealthyThreshold is the number of consecutive failures before marking an endpoint unhealthy.
@@ -208,15 +198,6 @@ type BackendserviceSpecHealthCheck struct {
 
 // BackendserviceSpecHealthCheckHttpMethod Method is the HTTP method used for health checks.
 type BackendserviceSpecHealthCheckHttpMethod string
-
-// BackendserviceSpecHealthCheckHttpsMethod Method is the HTTP method used for health checks.
-type BackendserviceSpecHealthCheckHttpsMethod string
-
-// BackendserviceSpecHealthCheckTls TLS configures health-check-only TLS behavior.
-type BackendserviceSpecHealthCheckTls struct {
-	// InsecureSkipVerify InsecureSkipVerify disables certificate verification.
-	InsecureSkipVerify *bool `json:"insecureSkipVerify,omitempty"`
-}
 
 // BackendserviceStatus defines model for BackendserviceStatus.
 type BackendserviceStatus struct {

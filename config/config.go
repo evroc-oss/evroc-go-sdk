@@ -281,8 +281,12 @@ func (c *Config) Validate() error {
 // SetDefaults sets default values for optional fields.
 func (c *Config) SetDefaults() {
 	// Derive client_id for service account auth: <serviceAccountID>_<project>
-	if c.Auth.ClientID == "" && c.Auth.ServiceAccountID != "" {
-		c.Auth.ClientID = c.Auth.ServiceAccountID + "_" + c.Context.Project
+	// This overrides the default "evroc-cli" client ID when SA auth is active,
+	// since the SA's Keycloak client is a different (confidential) client.
+	if c.Auth.ServiceAccountID != "" && c.Auth.ServiceAccountSecret != "" {
+		if c.Auth.ClientID == "" || c.Auth.ClientID == defaultClientID {
+			c.Auth.ClientID = c.Auth.ServiceAccountID + "_" + c.Context.Project
+		}
 	}
 
 	// Set default client_id if not specified

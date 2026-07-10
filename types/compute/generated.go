@@ -726,9 +726,6 @@ type VirtualMachineSpec struct {
 	// Disks The VM's Disks.
 	Disks *[]VirtualMachineSpecDisksItem `json:"disks,omitempty"`
 
-	// LoadBalancerMemberships Load Balancer membership configuration for the VM.
-	LoadBalancerMemberships *VirtualMachineSpecLoadBalancerMemberships `json:"loadBalancerMemberships,omitempty"`
-
 	// Networking Networking settings for the VM.
 	Networking VirtualMachineSpecNetworking `json:"networking"`
 
@@ -750,12 +747,6 @@ type VirtualMachineSpecDisksItem struct {
 
 	// DiskRef The Disk object which should be attached to the VM.
 	DiskRef string `json:"diskRef"`
-}
-
-// VirtualMachineSpecLoadBalancerMemberships Load Balancer membership configuration for the VM.
-type VirtualMachineSpecLoadBalancerMemberships struct {
-	// BackendPoolRefs The set of Load Balancer Pools to which this VM belongs.
-	BackendPoolRefs *[]string `json:"backendPoolRefs,omitempty"`
 }
 
 // VirtualMachineSpecNetworking Networking settings for the VM.

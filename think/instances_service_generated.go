@@ -26,6 +26,16 @@ func (s *InstancesService) Create(ctx context.Context, request *think.InstanceRe
 	return rest.CreateResource[*think.Instance](ctx, s.client.rest, path, request)
 }
 
+// Delete deletes a Instance using project/region from config
+func (s *InstancesService) Delete(ctx context.Context, name string) error {
+	path := s.client.path.ResourcePath(
+		s.client.parent.DefaultProject(),
+		s.client.parent.DefaultRegion(),
+		resourceInstances,
+		name)
+	return rest.DeleteResource(ctx, s.client.rest, path)
+}
+
 // Get retrieves a Instance by name using project/region from config
 func (s *InstancesService) Get(ctx context.Context, name string) (*think.Instance, error) {
 	path := s.client.path.ResourcePath(
@@ -53,14 +63,4 @@ func (s *InstancesService) Patch(ctx context.Context, name string, patch interfa
 		resourceInstances,
 		name)
 	return rest.PatchResource[*think.Instance](ctx, s.client.rest, path, patch)
-}
-
-// Delete deletes a Instance using project/region from config
-func (s *InstancesService) Delete(ctx context.Context, name string) error {
-	path := s.client.path.ResourcePath(
-		s.client.parent.DefaultProject(),
-		s.client.parent.DefaultRegion(),
-		resourceInstances,
-		name)
-	return rest.DeleteResource(ctx, s.client.rest, path)
 }
