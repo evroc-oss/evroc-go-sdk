@@ -42,6 +42,13 @@ const (
 	L4routeStatusConditionsItemStatusUnknown L4routeStatusConditionsItemStatus = "Unknown"
 )
 
+// Defines values for LoadbalancerSpecBackendNetworkSubnetsZone.
+const (
+	A LoadbalancerSpecBackendNetworkSubnetsZone = "a"
+	B LoadbalancerSpecBackendNetworkSubnetsZone = "b"
+	C LoadbalancerSpecBackendNetworkSubnetsZone = "c"
+)
+
 // Defines values for LoadbalancerSpecListenersItemProtocol.
 const (
 	TCP LoadbalancerSpecListenersItemProtocol = "TCP"
@@ -201,15 +208,19 @@ type BackendserviceSpecHealthCheckHttpMethod string
 
 // BackendserviceStatus defines model for BackendserviceStatus.
 type BackendserviceStatus struct {
-	// Addresses The list of backend addresses resolved for this service.
-	Addresses *[]string `json:"addresses,omitempty"`
-
-	// Backends The count of backend addresses resolved.
-	Backends int `json:"backends"`
+	// Backends The backends for this service.
+	Backends *[]BackendserviceStatusBackendsItem `json:"backends,omitempty"`
 
 	// Conditions ConditionsSet is an abstraction over []metav1.Condition that handles the
 	// removal of the previous occurrence of the conditionType when marking a condition.
 	Conditions *[]BackendserviceStatusConditionsItem `json:"conditions,omitempty"`
+}
+
+// BackendserviceStatusBackendsItem defines model for BackendserviceStatusBackendsItem.
+type BackendserviceStatusBackendsItem struct {
+	Address string `json:"address"`
+	Name    string `json:"name"`
+	Zone    string `json:"zone"`
 }
 
 // BackendserviceStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
@@ -392,12 +403,35 @@ type LoadbalancerRequest struct {
 
 // LoadbalancerSpec defines model for LoadbalancerSpec.
 type LoadbalancerSpec struct {
+	// BackendNetwork Optional configuration specifying which VPC and subnets the Load Balancer is attached to. If omitted, the Load
+	// Balancer will attach to the bootstrap networking subnet in each zone.
+	BackendNetwork *LoadbalancerSpecBackendNetwork `json:"backendNetwork,omitempty"`
+
 	// Listeners The set of Listeners for this Load Balancer.
 	Listeners *[]LoadbalancerSpecListenersItem `json:"listeners,omitempty"`
 
 	// PublicIPRef The public IP for the Load Balancer.
 	PublicIPRef string `json:"publicIPRef"`
 }
+
+// LoadbalancerSpecBackendNetwork Optional configuration specifying which VPC and subnets the Load Balancer is attached to. If omitted, the Load
+// Balancer will attach to the bootstrap networking subnet in each zone.
+type LoadbalancerSpecBackendNetwork struct {
+	// Subnets The subnets the Load Balancer will attach to in each zone.
+	Subnets []struct {
+		// SubnetRef The identifier of a subnet in that zone.
+		SubnetRef string `json:"subnetRef"`
+
+		// Zone A zone name.
+		Zone LoadbalancerSpecBackendNetworkSubnetsZone `json:"zone"`
+	} `json:"subnets"`
+
+	// VpcRef The VPC the Load Balancer is deployed in.
+	VpcRef string `json:"vpcRef"`
+}
+
+// LoadbalancerSpecBackendNetworkSubnetsZone A zone name.
+type LoadbalancerSpecBackendNetworkSubnetsZone string
 
 // LoadbalancerSpecListenersItem defines model for LoadbalancerSpecListenersItem.
 type LoadbalancerSpecListenersItem struct {
