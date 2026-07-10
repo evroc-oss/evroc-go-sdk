@@ -9,8 +9,8 @@
 //
 // Prerequisites:
 //
-//  1. Create a service account and credential via the IAM API.
-//     The API response includes the secret (a private key as JWK).
+//  1. Create a service account and credential via the IAM API
+//     (see examples/service-account-lifecycle).
 //
 //  2. Set the required environment variables (see below).
 //

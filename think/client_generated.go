@@ -16,10 +16,10 @@ const (
 
 	// Resource type constants
 	resourceApiKeys      = "apiKeys"
+	resourceInstances    = "instances"
 	resourceModels       = "models"
 	resourceSharedModels = "sharedModels"
 	resourceSizes        = "sizes"
-	resourceInstances    = "instances"
 )
 
 // ContextProvider provides access to context configuration
@@ -43,6 +43,10 @@ type (
 		Items []think.Apikey `json:"items,omitempty"`
 	}
 
+	InstanceList struct {
+		Items []think.Instance `json:"items,omitempty"`
+	}
+
 	ModelList struct {
 		Items []think.Model `json:"items,omitempty"`
 	}
@@ -53,10 +57,6 @@ type (
 
 	SizeList struct {
 		Items []think.Size `json:"items,omitempty"`
-	}
-
-	InstanceList struct {
-		Items []think.Instance `json:"items,omitempty"`
 	}
 )
 
@@ -74,6 +74,11 @@ func (c *Client) ApiKeys() *ApiKeysService {
 	return &ApiKeysService{client: c}
 }
 
+// Instances returns the Instances service
+func (c *Client) Instances() *InstancesService {
+	return &InstancesService{client: c}
+}
+
 // Models returns the Models service
 func (c *Client) Models() *ModelsService {
 	return &ModelsService{client: c}
@@ -87,9 +92,4 @@ func (c *Client) SharedModels() *SharedModelsService {
 // Sizes returns the Sizes service
 func (c *Client) Sizes() *SizesService {
 	return &SizesService{client: c}
-}
-
-// Instances returns the Instances service
-func (c *Client) Instances() *InstancesService {
-	return &InstancesService{client: c}
 }

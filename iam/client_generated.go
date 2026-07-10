@@ -15,9 +15,11 @@ const (
 	apiVersion = "v1beta1"
 
 	// Resource type constants
-	resourcePermissionSets = "permissionSets"
-	resourceProjects       = "projects"
-	resourceOrganizations  = "organizations"
+	resourceOrganizations             = "organizations"
+	resourcePermissionSets            = "permissionSets"
+	resourceProjects                  = "projects"
+	resourceServiceAccountCredentials = "serviceAccountCredentials"
+	resourceServiceAccounts           = "serviceAccounts"
 )
 
 // ContextProvider provides access to context configuration
@@ -37,6 +39,10 @@ type Client struct {
 
 // List response types
 type (
+	OrganizationList struct {
+		Items []iam.Organization `json:"items,omitempty"`
+	}
+
 	PermissionSetList struct {
 		Items []iam.PermissionSet `json:"items,omitempty"`
 	}
@@ -45,8 +51,12 @@ type (
 		Items []iam.Project `json:"items,omitempty"`
 	}
 
-	OrganizationList struct {
-		Items []iam.Organization `json:"items,omitempty"`
+	ServiceaccountcredentialList struct {
+		Items []iam.Serviceaccountcredential `json:"items,omitempty"`
+	}
+
+	ServiceaccountList struct {
+		Items []iam.Serviceaccount `json:"items,omitempty"`
 	}
 )
 
@@ -59,6 +69,11 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 	}
 }
 
+// Organizations returns the Organizations service
+func (c *Client) Organizations() *OrganizationsService {
+	return &OrganizationsService{client: c}
+}
+
 // PermissionSets returns the PermissionSets service
 func (c *Client) PermissionSets() *PermissionSetsService {
 	return &PermissionSetsService{client: c}
@@ -69,7 +84,18 @@ func (c *Client) Projects() *ProjectsService {
 	return &ProjectsService{client: c}
 }
 
-// Organizations returns the Organizations service
-func (c *Client) Organizations() *OrganizationsService {
-	return &OrganizationsService{client: c}
+// RoleBindings returns the RoleBindings service for assigning and revoking roles.
+func (c *Client) RoleBindings() *RoleBindingsService {
+	return &RoleBindingsService{client: c}
+}
+
+// ServiceAccountCredentials returns the ServiceAccountCredentials service
+// scoped to the given parent service account.
+func (c *Client) ServiceAccountCredentials(serviceAccountID string) *ServiceAccountCredentialsService {
+	return &ServiceAccountCredentialsService{client: c, serviceAccountID: serviceAccountID}
+}
+
+// ServiceAccounts returns the ServiceAccounts service
+func (c *Client) ServiceAccounts() *ServiceAccountsService {
+	return &ServiceAccountsService{client: c}
 }

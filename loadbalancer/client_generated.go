@@ -15,10 +15,10 @@ const (
 	apiVersion = "v1alpha1"
 
 	// Resource type constants
-	resourceLoadBalancers   = "loadBalancers"
 	resourceBackendPools    = "backendPools"
 	resourceBackendServices = "backendServices"
 	resourceL4Routes        = "l4Routes"
+	resourceLoadBalancers   = "loadBalancers"
 )
 
 // ContextProvider provides access to context configuration
@@ -38,10 +38,6 @@ type Client struct {
 
 // List response types
 type (
-	LoadbalancerList struct {
-		Items []loadbalancer.Loadbalancer `json:"items,omitempty"`
-	}
-
 	BackendpoolList struct {
 		Items []loadbalancer.Backendpool `json:"items,omitempty"`
 	}
@@ -53,6 +49,10 @@ type (
 	L4routeList struct {
 		Items []loadbalancer.L4route `json:"items,omitempty"`
 	}
+
+	LoadbalancerList struct {
+		Items []loadbalancer.Loadbalancer `json:"items,omitempty"`
+	}
 )
 
 // NewClient creates a new loadbalancer API client with a parent context provider
@@ -62,11 +62,6 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 		path:   rest.NewServicePath("loadbalancer", apiVersion),
 		parent: parent,
 	}
-}
-
-// LoadBalancers returns the LoadBalancers service
-func (c *Client) LoadBalancers() *LoadBalancersService {
-	return &LoadBalancersService{client: c}
 }
 
 // BackendPools returns the BackendPools service
@@ -82,4 +77,9 @@ func (c *Client) BackendServices() *BackendServicesService {
 // L4Routes returns the L4Routes service
 func (c *Client) L4Routes() *L4RoutesService {
 	return &L4RoutesService{client: c}
+}
+
+// LoadBalancers returns the LoadBalancers service
+func (c *Client) LoadBalancers() *LoadBalancersService {
+	return &LoadBalancersService{client: c}
 }

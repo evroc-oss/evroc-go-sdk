@@ -96,6 +96,14 @@ type OrgquotaSpecQuotas struct {
 		VCPUs *int64 `json:"vCPUs,omitempty"`
 	} `json:"compute,omitempty"`
 
+	// LoadBalancer LoadBalancer defines the quotas that this Organization is allowed
+	// to use for load balancer resources.
+	LoadBalancer *struct {
+		// LoadBalancers LoadBalancers defines the maximum number of load balancers that this
+		// Organization is allowed to use, aggregated across all resource groups.
+		LoadBalancers *int64 `json:"loadBalancers,omitempty"`
+	} `json:"loadBalancer,omitempty"`
+
 	// Networking Networking defines the quotas that this Organization is allowed
 	// to use for networking resources.
 	Networking *struct {
@@ -138,6 +146,12 @@ type OrgquotaStatusQuotaUsage struct {
 		// VCPUs VCPUs reports the current usage of vCPUs.
 		VCPUs *int64 `json:"vCPUs,omitempty"`
 	} `json:"compute,omitempty"`
+
+	// LoadBalancer LoadBalancer reports the current usage of load balancer resources.
+	LoadBalancer *struct {
+		// LoadBalancers LoadBalancers reports the current usage of load balancers.
+		LoadBalancers *int64 `json:"loadBalancers,omitempty"`
+	} `json:"loadBalancer,omitempty"`
 
 	// Networking Networking reports the current usage of networking resources.
 	Networking *struct {
