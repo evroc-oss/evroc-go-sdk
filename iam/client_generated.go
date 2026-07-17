@@ -52,9 +52,9 @@ type (
 		Items []iam.Project `json:"items,omitempty"`
 	}
 
-	RoleBindingList struct {
-		Items []iam.RoleBindingResponse `json:"items,omitempty"`
-	}
+	RoleBindingList = iam.RolebindingList
+
+	OrgRoleBindingList = iam.OrgListResponse
 
 	ServiceaccountcredentialList struct {
 		Items []iam.Serviceaccountcredential `json:"items,omitempty"`
