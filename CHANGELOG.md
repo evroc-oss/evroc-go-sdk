@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-07-17
+
+### Fixed
+- **Release workflow**: examples are now built with Go 1.25, matching CI — the v0.7.2 release failed to publish because two examples require Go 1.25 (no SDK code changes)
+
 ## [0.7.2] - 2026-07-16
 
 ### Added
@@ -125,3 +130,4 @@ Public release
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
 [0.7.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.0
 [0.7.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.2
+[0.7.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.3
