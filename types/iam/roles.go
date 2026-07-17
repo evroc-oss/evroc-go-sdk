@@ -31,6 +31,10 @@ const (
 	RoleThinkViewer   = "/iam/roles/thinkViewer"
 	RoleThinkOperator = "/iam/roles/thinkOperator"
 
+	// Kubernetes
+	RoleKubernetesCSIAgent = "/iam/roles/kubernetesCSIAgent"
+	RoleKubernetesCCMAgent = "/iam/roles/kubernetesCCMAgent"
+
 	// Cross-cutting
 	RoleQuotaViewer               = "/iam/roles/quotaViewer"
 	RoleCICDInfrastructureManager = "/iam/roles/cicdInfrastructureManager"

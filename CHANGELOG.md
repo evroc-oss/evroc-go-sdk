@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-07-16
+
+### Added
+- **IAM RoleBindings**: full CRUD for project-scoped role bindings (Create, Get, List, Delete, Patch)
+- **IAM RoleBindings**: full CRUD for organization-scoped role bindings
+- **IAM RoleBindings**: organization-scoped assign/revoke (`AssignOrgRole`, `RevokeOrgRole`)
+- **IAM Access Evaluation**: `TestPermissions` (check caller's own permissions) and `CheckAccess` (check another principal's permissions)
+- **IAM Caller Bindings**: `ListMyRoleBindings` returns all role bindings for the authenticated caller
+- **IAM Roles**: `RoleKubernetesCSIAgent` and `RoleKubernetesCCMAgent` role constants
+- **IAM ServiceAccountCredentials**: `HmacSigv4` credential type for S3 SigV4 authentication
+- **REST Client**: `OrgScopedCollectionPath` and `OrgScopedResourcePath` path builders
+
+### Breaking Changes
+- **IAM Types**: regenerated from OpenAPI spec — `RoleInfo.ID` is now `RoleInfo.Id`, `RoleInfo.Description` is now `*string`, `RoleInfo.Scope` is now `RoleInfoScope` (typed string)
+- **IAM Types**: `RoleList` is now an alias for `RoleListResponse` with `Items *[]RoleInfo` (pointer to slice)
+- **IAM Types**: `AssignRoleRequest.Resources` is now `*[]string` (pointer to slice)
+- **IAM Types**: `AssignProjectRole` and `RevokeProjectRole` now return `*Rolebinding` instead of `*RoleBindingResponse`
+- **IAM Types**: `RoleBindingResponse` and `RoleBindingEntry` removed — replaced by generated `Rolebinding`, `RolebindingSpec`, `RoleEntry`
+
 ## [0.7.1] - 2026-07-10
 
 ### Fixed
@@ -105,3 +124,4 @@ Public release
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
 [0.7.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.0
+[0.7.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.2

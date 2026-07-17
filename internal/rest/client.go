@@ -393,6 +393,16 @@ func (sp ServicePath) OrgCollectionPath(org, region, collection string) string {
 	return path.Join("/", sp.service, sp.version, "organizations", org, "regions", region, collection)
 }
 
+// OrgScopedCollectionPath builds a path for an org-scoped resource collection (no region).
+func (sp ServicePath) OrgScopedCollectionPath(org, collection string) string {
+	return path.Join("/", sp.service, sp.version, "organizations", org, collection)
+}
+
+// OrgScopedResourcePath builds a path for an org-scoped resource (no region).
+func (sp ServicePath) OrgScopedResourcePath(org, collection, name string) string {
+	return path.Join("/", sp.service, sp.version, "organizations", org, collection, name)
+}
+
 // GlobalCollectionPath builds a global resource collection path.
 func (sp ServicePath) GlobalCollectionPath(collection string) string {
 	return path.Join("/", sp.service, sp.version, collection)

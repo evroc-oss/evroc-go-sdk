@@ -58,8 +58,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to list roles: %v", err)
 	}
-	for _, r := range roles.Items {
-		fmt.Printf("   %-42s %s\n", r.ID, r.Description)
+	if roles.Items != nil {
+		for _, r := range *roles.Items {
+			desc := ""
+			if r.Description != nil {
+				desc = *r.Description
+			}
+			fmt.Printf("   %-42s %s\n", r.Id, desc)
+		}
 	}
 
 	// Step 2: Create a service account
