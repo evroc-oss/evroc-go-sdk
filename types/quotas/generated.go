@@ -83,6 +83,10 @@ type OrgquotaSpecQuotas struct {
 		// to use, aggregated across all resource groups and VMs, with a unit, e.g. "600 GB".
 		BlockStorage *string `json:"blockStorage,omitempty"`
 
+		// Disks Disks defines the maximum number of disks that this Organization is allowed
+		// to use, aggregated across all resource groups.
+		Disks *int64 `json:"disks,omitempty"`
+
 		// Gpus GPUs defines the number of GPU instances that this Organization is allowed to use, aggregated
 		// across all resource groups and VMs. There is a quota per GPU model.
 		Gpus *OrgquotaSpecQuotasGpus `json:"gpus,omitempty"`
@@ -133,6 +137,9 @@ type OrgquotaStatusQuotaUsage struct {
 
 		// BlockStorageInMBs BlockStorage reports the current usage of block storage in MBs
 		BlockStorageInMBs *int64 `json:"blockStorageInMBs,omitempty"`
+
+		// Disks Disks reports the current number of disks.
+		Disks *int64 `json:"disks,omitempty"`
 
 		// Gpus GPUs reports the current usage of GPUs.
 		Gpus *OrgquotaStatusQuotaUsageGpus `json:"gpus,omitempty"`

@@ -10,16 +10,6 @@ import (
 	iam "github.com/evroc-oss/evroc-go-sdk/types/iam"
 )
 
-// Labels returns a label helper for PermissionSets.
-func (s *PermissionSetsService) Labels() *labels.Helper[*iam.PermissionSet] {
-	return labels.For[*iam.PermissionSet](s, func(r *iam.PermissionSet) map[string]string {
-		if r.Metadata.UserLabels == nil {
-			return nil
-		}
-		return map[string]string(*r.Metadata.UserLabels)
-	})
-}
-
 // Labels returns a label helper for Projects.
 func (s *ProjectsService) Labels() *labels.Helper[*iam.Project] {
 	return labels.For[*iam.Project](s, func(r *iam.Project) map[string]string {

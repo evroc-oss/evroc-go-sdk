@@ -15,6 +15,8 @@ const (
 	apiVersion = "v1beta2"
 
 	// Resource type constants
+	resourceComputeProfiles        = "global/computeProfiles"
+	resourceDiskImages             = "global/diskImages/evroc"
 	resourceDisks                  = "disks"
 	resourceHotswapDiskAttachments = "hotswapDiskAttachments"
 	resourcePlacementGroups        = "placementGroups"
@@ -39,6 +41,14 @@ type Client struct {
 
 // List response types
 type (
+	ComputeprofileList struct {
+		Items []compute.Computeprofile `json:"items,omitempty"`
+	}
+
+	DiskimageList struct {
+		Items []compute.Diskimage `json:"items,omitempty"`
+	}
+
 	DiskList struct {
 		Items []compute.Disk `json:"items,omitempty"`
 	}
@@ -67,6 +77,16 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 		path:   rest.NewServicePath("compute", apiVersion),
 		parent: parent,
 	}
+}
+
+// ComputeProfiles returns the ComputeProfiles service
+func (c *Client) ComputeProfiles() *ComputeProfilesService {
+	return &ComputeProfilesService{client: c}
+}
+
+// DiskImages returns the DiskImages service
+func (c *Client) DiskImages() *DiskImagesService {
+	return &DiskImagesService{client: c}
 }
 
 // Disks returns the Disks service

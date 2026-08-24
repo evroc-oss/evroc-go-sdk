@@ -16,7 +16,6 @@ const (
 
 	// Resource type constants
 	resourceOrganizations             = "organizations"
-	resourcePermissionSets            = "permissionSets"
 	resourceProjects                  = "projects"
 	resourceRoleBindings              = "roleBindings"
 	resourceServiceAccountCredentials = "serviceAccountCredentials"
@@ -42,10 +41,6 @@ type Client struct {
 type (
 	OrganizationList struct {
 		Items []iam.Organization `json:"items,omitempty"`
-	}
-
-	PermissionSetList struct {
-		Items []iam.PermissionSet `json:"items,omitempty"`
 	}
 
 	ProjectList struct {
@@ -77,11 +72,6 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 // Organizations returns the Organizations service
 func (c *Client) Organizations() *OrganizationsService {
 	return &OrganizationsService{client: c}
-}
-
-// PermissionSets returns the PermissionSets service
-func (c *Client) PermissionSets() *PermissionSetsService {
-	return &PermissionSetsService{client: c}
 }
 
 // Projects returns the Projects service

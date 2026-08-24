@@ -307,20 +307,13 @@ fmt.Printf("Endpoint: %s\n", credentials.Endpoint)
 
 ## IAM
 
-### Projects and Permission Sets
+### Projects
 
 ```go
 // Create a project
 project, err := client.IAM().Projects().Create(ctx,
     iam.NewProjectBuilder("dev-project", "organization-id").
         WithName("Development Environment").
-        Build(),
-)
-
-// Create a permission set
-permissions, err := client.IAM().PermissionSets().Create(ctx,
-    iam.NewPermissionSetBuilder("developer-permissions", "project-id", "user@example.com").
-        WithAdmin(false).
         Build(),
 )
 ```

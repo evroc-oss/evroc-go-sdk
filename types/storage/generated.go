@@ -120,22 +120,6 @@ type BucketList struct {
 	Items *[]Bucket `json:"items,omitempty"`
 }
 
-// BucketPatchRequest defines model for BucketPatchRequest.
-type BucketPatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec BucketSpec defines the desired state of Bucket.
-	Spec *BucketSpec `json:"spec,omitempty"`
-}
-
 // BucketRequest defines model for BucketRequest.
 type BucketRequest struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -176,22 +160,6 @@ type BucketServiceAccountList struct {
 	Items *[]BucketServiceAccount `json:"items,omitempty"`
 }
 
-// BucketServiceAccountPatchRequest defines model for BucketServiceAccountPatchRequest.
-type BucketServiceAccountPatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec BucketServiceAccountSpec defines the desired state of BucketServiceAccount.
-	Spec *BucketServiceAccountSpec `json:"spec,omitempty"`
-}
-
 // BucketServiceAccountRequest defines model for BucketServiceAccountRequest.
 type BucketServiceAccountRequest struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -211,7 +179,7 @@ type BucketServiceAccountRequest struct {
 // BucketServiceAccountSpec BucketServiceAccountSpec defines the desired state of BucketServiceAccount.
 type BucketServiceAccountSpec struct {
 	// Buckets Buckets is a list of buckets that the service account has access to. Each
-	// element in the list is the id of a bucket in the same project as the
+	// element in the list is the name of a bucket in the same project as the
 	// BucketServiceAccount.
 	Buckets *[]string `json:"buckets,omitempty"`
 }
@@ -268,6 +236,10 @@ type BucketSpec struct {
 	// on a per-object level.
 	DefaultObjectLocking *BucketSpecDefaultObjectLocking `json:"defaultObjectLocking,omitempty"`
 
+	// LifecyclePolicy LifecyclePolicy controls the lifecycle of objects and object versions, providing rules that
+	// determine how and when objects or object versions are automatically deleted.
+	LifecyclePolicy *BucketSpecLifecyclePolicy `json:"lifecyclePolicy,omitempty"`
+
 	// ObjectRetentionMode ObjectRetentionMode controls how object retention is managed. If not explicitly set, the
 	// default is `Disabled`, meaning that no version history is kept for objects, and objects
 	// can not be locked. If the retention mode is ever set to some value other than `Disabled`,
@@ -305,6 +277,90 @@ type BucketSpecDefaultObjectLocking struct {
 // BucketSpecDefaultObjectLockingMode Mode defines what type of protection is applied on objects by default
 // when object locking is enabled.
 type BucketSpecDefaultObjectLockingMode string
+
+// BucketSpecLifecyclePolicy LifecyclePolicy controls the lifecycle of objects and object versions, providing rules that
+// determine how and when objects or object versions are automatically deleted.
+type BucketSpecLifecyclePolicy struct {
+	// Rules Rules defines the rules that are evaluated against objects when determining lifecycle
+	// actions like deleting objects or object versions.
+	Rules []struct {
+		// AbortIncompleteMultipart AbortIncompleteMultipart defines the action of this rule as aborting in-progress multipart
+		// uploads.
+		AbortIncompleteMultipart *BucketSpecLifecyclePolicyAbortIncompleteMultipart `json:"abortIncompleteMultipart,omitempty"`
+
+		// Disabled Disabled defines whether the rule is currently being used during lifecycle evaluation.
+		Disabled *bool `json:"disabled,omitempty"`
+
+		// ExpireCurrentVersion ExpireCurrentVersion defines the action of this rule as either deleting the object in a
+		// non-versioned bucket, or adding a deletion marker in a versioned bucket.
+		ExpireCurrentVersion *BucketSpecLifecyclePolicyExpireCurrentVersion `json:"expireCurrentVersion,omitempty"`
+
+		// ExpireNonCurrentVersion ExpireNonCurrentVersion defines the action of this rule as removing old versions of an object.
+		ExpireNonCurrentVersion *BucketSpecLifecyclePolicyExpireNonCurrentVersion `json:"expireNonCurrentVersion,omitempty"`
+
+		// Filter Filter defines filters used to determine relevant objects to which the rule
+		// applies. If no filter is supplied, the rule applies to all objects. Multiple filter
+		// properties can be specified, in which case they are AND:ed together such that all
+		// must match in order for the rule to apply.
+		Filter *BucketSpecLifecyclePolicyFilter `json:"filter,omitempty"`
+
+		// Id ID defines a unique ID for the LifecycleRule
+		Id string `json:"id"`
+	} `json:"rules"`
+}
+
+// BucketSpecLifecyclePolicyAbortIncompleteMultipart AbortIncompleteMultipart defines the action of this rule as aborting in-progress multipart
+// uploads.
+type BucketSpecLifecyclePolicyAbortIncompleteMultipart struct {
+	// Days Days defines the number of days after which an incomplete multipart upload is aborted.
+	Days int32 `json:"days"`
+}
+
+// BucketSpecLifecyclePolicyExpireCurrentVersion ExpireCurrentVersion defines the action of this rule as either deleting the object in a
+// non-versioned bucket, or adding a deletion marker in a versioned bucket.
+type BucketSpecLifecyclePolicyExpireCurrentVersion struct {
+	// Date Date defines the date on which the current version of an object expires.
+	Date *time.Time `json:"date,omitempty"`
+
+	// Days Days defines the number of days after which the current version of an object expires.
+	Days *int32 `json:"days,omitempty"`
+
+	// ExpireOrphanedDeletionMarkers ExpireOrphanedDeletionMarkers defines whether orphaned deletion markers are expired.
+	ExpireOrphanedDeletionMarkers *bool `json:"expireOrphanedDeletionMarkers,omitempty"`
+}
+
+// BucketSpecLifecyclePolicyExpireNonCurrentVersion ExpireNonCurrentVersion defines the action of this rule as removing old versions of an object.
+type BucketSpecLifecyclePolicyExpireNonCurrentVersion struct {
+	// Days Days defines the number of days after which a non-current version of an object expires.
+	Days *int32 `json:"days,omitempty"`
+
+	// MaxNumVersions MaxNumVersions defines the maximum number of non-current versions to retain.
+	MaxNumVersions *int32 `json:"maxNumVersions,omitempty"`
+}
+
+// BucketSpecLifecyclePolicyFilter Filter defines filters used to determine relevant objects to which the rule
+// applies. If no filter is supplied, the rule applies to all objects. Multiple filter
+// properties can be specified, in which case they are AND:ed together such that all
+// must match in order for the rule to apply.
+type BucketSpecLifecyclePolicyFilter struct {
+	// Prefix Prefix defines a key prefix that objects must match for the rule to apply.
+	Prefix *string `json:"prefix,omitempty"`
+
+	// SizeGreaterThan SizeGreaterThan defines the minimum object size (in bytes) for the rule to apply.
+	SizeGreaterThan *int64 `json:"sizeGreaterThan,omitempty"`
+
+	// SizeLessThan SizeLessThan defines the maximum object size (in bytes) for the rule to apply.
+	SizeLessThan *int64 `json:"sizeLessThan,omitempty"`
+
+	// Tag Tags defines key-value tags that objects must have for the rule to apply.
+	Tag *[]struct {
+		// Key Key defines the tag key that objects must have for the rule to apply.
+		Key string `json:"key"`
+
+		// Value Value defines the tag value that objects must have for the rule to apply.
+		Value string `json:"value"`
+	} `json:"tag,omitempty"`
+}
 
 // BucketStatus BucketStatus defines the observed state of Bucket.
 type BucketStatus struct {
@@ -398,22 +454,6 @@ type FilestoreList struct {
 	Items *[]Filestore `json:"items,omitempty"`
 }
 
-// FilestorePatchRequest defines model for FilestorePatchRequest.
-type FilestorePatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for region-scoped resource  used for PATCH operations.
-	Metadata *RegionalMetadataRequestPatch `json:"metadata,omitempty"`
-
-	// Spec FileStoreSpec defines the desired state of FileStore.
-	Spec *FilestoreSpec `json:"spec,omitempty"`
-}
-
 // FilestoreRequest defines model for FilestoreRequest.
 type FilestoreRequest struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -463,7 +503,7 @@ type FilestoreSpecPlacement struct {
 // FilestoreStatus FileStoreStatus defines the observed state of FileStore.
 type FilestoreStatus struct {
 	// Conditions Conditions represents the state of the FileStore over time.
-	// Each condition follows the Kubernetes API conventions for a condition.
+	// Each condition follows the Kubernetes API conventions for a condition:
 	Conditions *[]FilestoreStatusConditionsItem `json:"conditions,omitempty"`
 
 	// Nfs NFS contains the connection details when Protocol is NFS.
@@ -487,8 +527,7 @@ type FilestoreStatusProtocol string
 // FilestoreStatusStatus Status represents the current lifecycle state.
 type FilestoreStatusStatus string
 
-// FilestoreStatusConditionsItem Condition contains details for one aspect of the current
-// state of this API Resource.
+// FilestoreStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
 type FilestoreStatusConditionsItem struct {
 	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
 	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
@@ -550,34 +589,10 @@ type GlobalMetadataRequest struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
-// GlobalMetadataRequestPatch Standard metadata for global resources used for PATCH operations.
-type GlobalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
 // RegionalMetadataRequest defines model for RegionalMetadataRequest.
 type RegionalMetadataRequest struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
-
-	// Project Project identifier
-	Project *string `json:"project,omitempty"`
-
-	// Region Region identifier
-	Region *string `json:"region,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// RegionalMetadataRequestPatch defines model for RegionalMetadataRequestPatch.
-type RegionalMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
 
 	// Project Project identifier
 	Project *string `json:"project,omitempty"`
@@ -642,8 +657,8 @@ type Data struct {
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsParams defines parameters for PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccounts.
-type PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsParams struct {
+// GetStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsParams defines parameters for GetStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccounts.
+type GetStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
@@ -654,8 +669,8 @@ type GetStorageV1ProjectsProjectIDRegionsRegionNameBucketsParams struct {
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams defines parameters for PostStorageV1ProjectsProjectIDRegionsRegionNameFileStores.
-type PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams struct {
+// GetStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams defines parameters for GetStorageV1ProjectsProjectIDRegionsRegionNameFileStores.
+type GetStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
@@ -664,16 +679,16 @@ type PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresParams struct {
 type PostStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsJSONRequestBody = BucketServiceAccountRequest
 
 // PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountID for application/json ContentType.
-type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody = BucketServiceAccountPatchRequest
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketServiceAccountsBucketServiceAccountIDJSONRequestBody = BucketServiceAccountRequest
 
 // PostStorageV1ProjectsProjectIDRegionsRegionNameBucketsJSONRequestBody defines body for PostStorageV1ProjectsProjectIDRegionsRegionNameBuckets for application/json ContentType.
 type PostStorageV1ProjectsProjectIDRegionsRegionNameBucketsJSONRequestBody = BucketRequest
 
 // PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketID for application/json ContentType.
-type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody = BucketPatchRequest
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameBucketsBucketIDJSONRequestBody = BucketRequest
 
 // PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresJSONRequestBody defines body for PostStorageV1ProjectsProjectIDRegionsRegionNameFileStores for application/json ContentType.
 type PostStorageV1ProjectsProjectIDRegionsRegionNameFileStoresJSONRequestBody = FilestoreRequest
 
 // PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreIDJSONRequestBody defines body for PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreID for application/json ContentType.
-type PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreIDJSONRequestBody = FilestorePatchRequest
+type PatchStorageV1ProjectsProjectIDRegionsRegionNameFileStoresFileStoreIDJSONRequestBody = FilestoreRequest

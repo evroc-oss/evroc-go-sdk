@@ -11,7 +11,7 @@ Go client for Compute, Networking, IAM, Storage, Quotas, Think, and LoadBalancer
 [![CI](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/ci.yml)
 [![Release](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/release.yml/badge.svg)](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/release.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/evroc-oss/evroc-go-sdk.svg)](https://pkg.go.dev/github.com/evroc-oss/evroc-go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/evroc-oss/evroc-go-sdk)](https://goreportcard.com/report/github.com/evroc-oss/evroc-go-sdk)
+[![golangci-lint](https://img.shields.io/github/actions/workflow/status/evroc-oss/evroc-go-sdk/ci.yml?branch=main&label=golangci-lint&logo=go)](https://github.com/evroc-oss/evroc-go-sdk/actions/workflows/ci.yml?query=branch%3Amain)
 [![Go Version](https://img.shields.io/github/go-mod-go-version/evroc-oss/evroc-go-sdk)](https://github.com/evroc-oss/evroc-go-sdk/blob/main/go.mod)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Security](https://img.shields.io/badge/Security-Signed%20%26%20Attested-green.svg)](https://github.com/evroc-oss/evroc-go-sdk/releases/latest)
@@ -33,7 +33,7 @@ Type-safe API with automatic retries and context support.
 | **Compute** | Virtual machines, disks, placement groups, hotswap attachments |
 | **Networking** | Public IPs, security groups, VPCs (read), subnets (read) |
 | **Storage** | S3-compatible buckets and service accounts |
-| **IAM** | Projects and permission sets |
+| **IAM** | Projects, role bindings, and service accounts |
 | **Quotas** | Organization and project resource quotas (read-only) |
 | **Think** | Dedicated GPU instances, AI models, API keys, shared models |
 | **LoadBalancer** | L4 load balancers, backend pools, backend services, L4 routes (**pre-release — v1alpha1, subject to breaking changes**) |
@@ -202,7 +202,7 @@ func main() {
 | [compute](examples/compute/) | All Compute APIs (VMs, disks, placement groups) |
 | [networking](examples/networking/) | All Networking APIs (public IPs, security groups) |
 | [storage](examples/storage/) | All Storage APIs (buckets, service accounts, S3) |
-| [iam](examples/iam/) | All IAM APIs (projects, permission sets) |
+| [iam](examples/iam/) | All IAM APIs (projects) |
 | [think-api-key](examples/think-api-key/) | Think API key management for shared models |
 | [think-dedicated-models](examples/think-dedicated-models/) | Dedicated GPU instances for AI model serving |
 | [labels](examples/labels/) | Resource labeling and filtering |
