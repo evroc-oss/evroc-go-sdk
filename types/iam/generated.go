@@ -16,18 +16,6 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
-// Defines values for PermissionSetSpecSubjectType.
-const (
-	User PermissionSetSpecSubjectType = "user"
-)
-
-// Defines values for PermissionSetStatusConditionsItemStatus.
-const (
-	PermissionSetStatusConditionsItemStatusFalse   PermissionSetStatusConditionsItemStatus = "False"
-	PermissionSetStatusConditionsItemStatusTrue    PermissionSetStatusConditionsItemStatus = "True"
-	PermissionSetStatusConditionsItemStatusUnknown PermissionSetStatusConditionsItemStatus = "Unknown"
-)
-
 // Defines values for ProjectStatusConditionsItemStatus.
 const (
 	ProjectStatusConditionsItemStatusFalse   ProjectStatusConditionsItemStatus = "False"
@@ -62,9 +50,9 @@ const (
 
 // Defines values for ServiceaccountcredentialStatusConditionsItemStatus.
 const (
-	False   ServiceaccountcredentialStatusConditionsItemStatus = "False"
-	True    ServiceaccountcredentialStatusConditionsItemStatus = "True"
-	Unknown ServiceaccountcredentialStatusConditionsItemStatus = "Unknown"
+	ServiceaccountcredentialStatusConditionsItemStatusFalse   ServiceaccountcredentialStatusConditionsItemStatus = "False"
+	ServiceaccountcredentialStatusConditionsItemStatusTrue    ServiceaccountcredentialStatusConditionsItemStatus = "True"
+	ServiceaccountcredentialStatusConditionsItemStatusUnknown ServiceaccountcredentialStatusConditionsItemStatus = "Unknown"
 )
 
 // AssignRoleRequest Grants one role to one principal, optionally limited to specific resources.
@@ -471,111 +459,6 @@ type PermissionResult struct {
 	// Resource The checked resource FQID, echoed from the request.
 	Resource string `json:"resource"`
 }
-
-// PermissionSet defines model for PermissionSet.
-type PermissionSet struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion ApiVersion `json:"apiVersion"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind Kind `json:"kind"`
-
-	// Metadata Standard metadata for global project-scoped resources.
-	Metadata GlobalProjectMetadataResponse `json:"metadata"`
-	Spec     PermissionSetSpec             `json:"spec"`
-
-	// Status PermissionSetStatus defines the observed state of permission sets.
-	Status PermissionSetStatus `json:"status"`
-}
-
-// PermissionSetList defines model for PermissionSetList.
-type PermissionSetList struct {
-	Items *[]PermissionSet `json:"items,omitempty"`
-}
-
-// PermissionSetPatchRequest defines model for PermissionSetPatchRequest.
-type PermissionSetPatchRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion *ApiVersion `json:"apiVersion,omitempty"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind *Kind `json:"kind,omitempty"`
-
-	// Metadata Standard metadata for global, project-scoped resource  used for PATCH operations.
-	Metadata *GlobalProjectMetadataRequestPatch `json:"metadata,omitempty"`
-	Spec     *PatchSpec                         `json:"spec,omitempty"`
-}
-
-// PermissionSetRequest defines model for PermissionSetRequest.
-type PermissionSetRequest struct {
-	// ApiVersion Identifies the version of the API schema used for this resource.
-	// It should be the same than the version in the path, otherwise the request will be rejected.
-	ApiVersion ApiVersion `json:"apiVersion"`
-
-	// Kind Specifies the type of resource this object represents.
-	Kind Kind `json:"kind"`
-
-	// Metadata Standard metadata for global, project-scoped resource
-	Metadata GlobalProjectMetadataRequest `json:"metadata"`
-	Spec     PermissionSetSpec            `json:"spec"`
-}
-
-// PermissionSetSpec defines model for PermissionSetSpec.
-type PermissionSetSpec struct {
-	Admin   bool                     `json:"admin"`
-	Subject PermissionSetSpecSubject `json:"subject"`
-}
-
-// PermissionSetSpecSubject defines model for PermissionSetSpecSubject.
-type PermissionSetSpecSubject struct {
-	Type PermissionSetSpecSubjectType `json:"type"`
-	User struct {
-		Email string `json:"email"`
-	} `json:"user"`
-}
-
-// PermissionSetSpecSubjectType defines model for PermissionSetSpecSubject.Type.
-type PermissionSetSpecSubjectType string
-
-// PermissionSetStatus PermissionSetStatus defines the observed state of permission sets.
-type PermissionSetStatus struct {
-	// Conditions Conditions represents the state of the PermissionSet over time.
-	Conditions *[]PermissionSetStatusConditionsItem `json:"conditions,omitempty"`
-}
-
-// PermissionSetStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
-type PermissionSetStatusConditionsItem struct {
-	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
-	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-	LastTransitionTime time.Time `json:"lastTransitionTime"`
-
-	// Message message is a human readable message indicating details about the transition.
-	// This may be an empty string.
-	Message string `json:"message"`
-
-	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
-	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-	// with respect to the current state of the instance.
-	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
-
-	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
-	// Producers of specific condition types may define expected values and meanings for this field,
-	// and whether the values are considered a guaranteed API.
-	// The value should be a CamelCase string.
-	// This field may not be empty.
-	Reason string `json:"reason"`
-
-	// Status status of the condition, one of True, False, Unknown.
-	Status PermissionSetStatusConditionsItemStatus `json:"status"`
-
-	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
-	Type string `json:"type"`
-}
-
-// PermissionSetStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
-type PermissionSetStatusConditionsItemStatus string
 
 // Project defines model for Project.
 type Project struct {
@@ -1116,12 +999,6 @@ type GetIamV1beta1OrganizationsOrganizationIDRoleBindingsParams struct {
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetIamV1beta1ProjectsProjectIDPermissionSetsParams defines parameters for GetIamV1beta1ProjectsProjectIDPermissionSets.
-type GetIamV1beta1ProjectsProjectIDPermissionSetsParams struct {
-	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
-	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
-}
-
 // GetIamV1beta1ProjectsProjectIDRoleBindingsParams defines parameters for GetIamV1beta1ProjectsProjectIDRoleBindings.
 type GetIamV1beta1ProjectsProjectIDRoleBindingsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
@@ -1163,12 +1040,6 @@ type PostIamV1beta1ProjectsJSONRequestBody = ProjectRequest
 
 // PatchIamV1beta1ProjectsProjectIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectID for application/json ContentType.
 type PatchIamV1beta1ProjectsProjectIDJSONRequestBody = ProjectPatchRequest
-
-// PostIamV1beta1ProjectsProjectIDPermissionSetsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDPermissionSets for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDPermissionSetsJSONRequestBody = PermissionSetRequest
-
-// PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDPermissionSetsPermissionSetIDJSONRequestBody = PermissionSetPatchRequest
 
 // PostIamV1beta1ProjectsProjectIDRoleBindingsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDRoleBindings for application/json ContentType.
 type PostIamV1beta1ProjectsProjectIDRoleBindingsJSONRequestBody = RolebindingRequest

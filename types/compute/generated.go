@@ -16,6 +16,21 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for ComputeprofileSpecMemoryUnit.
+const (
+	ComputeprofileSpecMemoryUnitGB ComputeprofileSpecMemoryUnit = "GB"
+	ComputeprofileSpecMemoryUnitKB ComputeprofileSpecMemoryUnit = "KB"
+	ComputeprofileSpecMemoryUnitMB ComputeprofileSpecMemoryUnit = "MB"
+	ComputeprofileSpecMemoryUnitTB ComputeprofileSpecMemoryUnit = "TB"
+)
+
+// Defines values for ComputeprofileStatusConditionsItemStatus.
+const (
+	ComputeprofileStatusConditionsItemStatusFalse   ComputeprofileStatusConditionsItemStatus = "False"
+	ComputeprofileStatusConditionsItemStatusTrue    ComputeprofileStatusConditionsItemStatus = "True"
+	ComputeprofileStatusConditionsItemStatusUnknown ComputeprofileStatusConditionsItemStatus = "Unknown"
+)
+
 // Defines values for DiskSpecDiskSizeUnit.
 const (
 	DiskSpecDiskSizeUnitGB DiskSpecDiskSizeUnit = "GB"
@@ -50,6 +65,28 @@ const (
 const (
 	Hotswap   DiskStatusDiskUsageItemUseKind = "hotswap"
 	Permanent DiskStatusDiskUsageItemUseKind = "permanent"
+)
+
+// Defines values for DiskimageSpecOsArch.
+const (
+	Amd64 DiskimageSpecOsArch = "amd64"
+	Arm64 DiskimageSpecOsArch = "arm64"
+	Empty DiskimageSpecOsArch = ""
+)
+
+// Defines values for DiskimageSpecDefaultSizeUnit.
+const (
+	DiskimageSpecDefaultSizeUnitGB DiskimageSpecDefaultSizeUnit = "GB"
+	DiskimageSpecDefaultSizeUnitKB DiskimageSpecDefaultSizeUnit = "KB"
+	DiskimageSpecDefaultSizeUnitMB DiskimageSpecDefaultSizeUnit = "MB"
+	DiskimageSpecDefaultSizeUnitTB DiskimageSpecDefaultSizeUnit = "TB"
+)
+
+// Defines values for DiskimageStatusConditionsItemStatus.
+const (
+	DiskimageStatusConditionsItemStatusFalse   DiskimageStatusConditionsItemStatus = "False"
+	DiskimageStatusConditionsItemStatusTrue    DiskimageStatusConditionsItemStatus = "True"
+	DiskimageStatusConditionsItemStatusUnknown DiskimageStatusConditionsItemStatus = "Unknown"
 )
 
 // Defines values for HotswapDiskAttachmentStatusConditionsItemStatus.
@@ -114,6 +151,107 @@ type BaseMetadataResponse struct {
 	// Uid System-assigned unique identifier for the resource. Immutable.
 	Uid openapi_types.UUID `json:"uid"`
 }
+
+// Computeprofile defines model for Computeprofile.
+type Computeprofile struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global resources.
+	Metadata GlobalMetadataResponse `json:"metadata"`
+	Spec     ComputeprofileSpec     `json:"spec"`
+	Status   ComputeprofileStatus   `json:"status"`
+}
+
+// ComputeprofileList defines model for ComputeprofileList.
+type ComputeprofileList struct {
+	Items *[]Computeprofile `json:"items,omitempty"`
+}
+
+// ComputeprofileSpec defines model for ComputeprofileSpec.
+type ComputeprofileSpec struct {
+	// Gpus The model and quantity of GPUs, as well as details of other GPU-related resources. If empty,
+	// no GPUs are attached to the VM.
+	Gpus *ComputeprofileSpecGpus `json:"gpus,omitempty"`
+
+	// Memory The amount of memory, supported by the virtual machine size. This is a tuple of an amount (an integer) and a unit (one of 'KB', 'MB' and 'GB')
+	// For example, amount=4 and unit=GB would represent memory of 4GB, and amount=4096, unit=MB would represent an equivalently sized memory of 4096MB.
+	Memory ComputeprofileSpecMemory `json:"memory"`
+
+	// ProcessorArchitecture One of 'arm64' or 'amd64'
+	ProcessorArchitecture string `json:"processorArchitecture"`
+
+	// VCPUs The number of vCPUs
+	VCPUs int `json:"vCPUs"`
+}
+
+// ComputeprofileSpecGpus The model and quantity of GPUs, as well as details of other GPU-related resources. If empty,
+// no GPUs are attached to the VM.
+type ComputeprofileSpecGpus struct {
+	// LocalDisk The size of the local disk created automatically for this GPU VM, in GB.
+	LocalDisk int32 `json:"localDisk"`
+
+	// Model The model of GPUs.
+	Model string `json:"model"`
+
+	// Quantity The quantity of GPUs.
+	Quantity int32 `json:"quantity"`
+}
+
+// ComputeprofileSpecMemory The amount of memory, supported by the virtual machine size. This is a tuple of an amount (an integer) and a unit (one of 'KB', 'MB' and 'GB')
+// For example, amount=4 and unit=GB would represent memory of 4GB, and amount=4096, unit=MB would represent an equivalently sized memory of 4096MB.
+type ComputeprofileSpecMemory struct {
+	// Amount The amount of memory, in the related unit for this virtual machine size.
+	Amount int32                        `json:"amount"`
+	Unit   ComputeprofileSpecMemoryUnit `json:"unit"`
+}
+
+// ComputeprofileSpecMemoryUnit defines model for ComputeprofileSpecMemory.Unit.
+type ComputeprofileSpecMemoryUnit string
+
+// ComputeprofileStatus defines model for ComputeprofileStatus.
+type ComputeprofileStatus struct {
+	// Conditions The state of the ComputeProfile over time.
+	// Each condition follows the Kubernetes API conventions for a condition:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
+	Conditions *[]ComputeprofileStatusConditionsItem `json:"conditions,omitempty"`
+}
+
+// ComputeprofileStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type ComputeprofileStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status ComputeprofileStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// ComputeprofileStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type ComputeprofileStatusConditionsItemStatus string
 
 // Disk defines model for Disk.
 type Disk struct {
@@ -310,6 +448,91 @@ type DiskStatusPlacement struct {
 	Zone *string `json:"zone,omitempty"`
 }
 
+// Diskimage defines model for Diskimage.
+type Diskimage struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for global resources.
+	Metadata GlobalMetadataResponse `json:"metadata"`
+	Spec     DiskimageSpec          `json:"spec"`
+	Status   DiskimageStatus        `json:"status"`
+}
+
+// DiskimageList defines model for DiskimageList.
+type DiskimageList struct {
+	Items *[]Diskimage `json:"items,omitempty"`
+}
+
+// DiskimageSpec defines model for DiskimageSpec.
+type DiskimageSpec struct {
+	// DefaultSize The default size of the disk if Disk does not specify one.
+	DefaultSize DiskimageSpecDefaultSize `json:"defaultSize"`
+
+	// GpuAffinities The models of GPU this disk image is for. All disk images can be used for CPU VMs.
+	GpuAffinities *[]string            `json:"gpuAffinities,omitempty"`
+	OsArch        *DiskimageSpecOsArch `json:"osArch,omitempty"`
+	OsImage       string               `json:"osImage"`
+	OsVersion     string               `json:"osVersion"`
+	Version       int32                `json:"version"`
+}
+
+// DiskimageSpecOsArch defines model for DiskimageSpec.OsArch.
+type DiskimageSpecOsArch string
+
+// DiskimageSpecDefaultSize The default size of the disk if Disk does not specify one.
+type DiskimageSpecDefaultSize struct {
+	Amount int32                        `json:"amount"`
+	Unit   DiskimageSpecDefaultSizeUnit `json:"unit"`
+}
+
+// DiskimageSpecDefaultSizeUnit defines model for DiskimageSpecDefaultSize.Unit.
+type DiskimageSpecDefaultSizeUnit string
+
+// DiskimageStatus defines model for DiskimageStatus.
+type DiskimageStatus struct {
+	// Conditions The state of the disk image over time.
+	// Each condition follows the Kubernetes API conventions for a condition:
+	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
+	Conditions *[]DiskimageStatusConditionsItem `json:"conditions,omitempty"`
+}
+
+// DiskimageStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type DiskimageStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status DiskimageStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// DiskimageStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type DiskimageStatusConditionsItemStatus string
+
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
@@ -323,6 +546,27 @@ type Error struct {
 type GlobalMetadataRequest struct {
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// GlobalMetadataResponse defines model for GlobalMetadataResponse.
+type GlobalMetadataResponse struct {
+	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
+	CreationTimestamp time.Time `json:"creationTimestamp"`
+
+	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
+	Generation int64 `json:"generation"`
+
+	// Id Unique identifier for the resource within its namespace. Immutable.
+	Id string `json:"id"`
+
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
+	ResourceVersion *string `json:"resourceVersion,omitempty"`
+
+	// Uid System-assigned unique identifier for the resource. Immutable.
+	Uid openapi_types.UUID `json:"uid"`
 
 	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
@@ -969,6 +1213,18 @@ type ApiVersion = string
 
 // Kind Specifies the type of resource this object represents.
 type Kind = string
+
+// GetComputeV1beta2GlobalComputeProfilesParams defines parameters for GetComputeV1beta2GlobalComputeProfiles.
+type GetComputeV1beta2GlobalComputeProfilesParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
+// GetComputeV1beta2GlobalDiskImagesEvrocParams defines parameters for GetComputeV1beta2GlobalDiskImagesEvroc.
+type GetComputeV1beta2GlobalDiskImagesEvrocParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
 
 // GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisks.
 type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksParams struct {

@@ -57,17 +57,6 @@
 //
 //	user, err := client.IAM().Users().Get(ctx, "user@example.com")
 //
-// # Permission Sets
-//
-// Create and manage permission sets for access control:
-//
-//	permSet, err := client.IAM().PermissionSets().Create(ctx,
-//	    iam.NewPermissionSetBuilder("developer-access").
-//	        WithDescription("Developer permissions").
-//	        WithProject("dev-project").
-//	        Build(),
-//	)
-//
 // # Context Support
 //
 // All operations support context for cancellation and timeouts:

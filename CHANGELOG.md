@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-18
+
+### Added
+- **Storage Buckets**: lifecycle policy support (`Spec.LifecyclePolicy`) — rules for object expiration, non-current version cleanup, multipart upload aborts, and filters
+- **Compute ComputeProfiles**: Get/List for compute profiles (CPU and GPU)
+- **Compute DiskImages**: Get/List for evroc-provided disk images
+
+### Breaking Changes
+- **IAM PermissionSets**: removed — the API was deleted upstream in favor of FGA-backed RoleBindings; use `RoleBindings()` (project/org bindings, assign/revoke). `PermissionSets()`, `NewPermissionSetBuilder`, and all `PermissionSet*` types are gone
+- **Storage/Quotas Types**: regenerated — `BucketPatchRequest`, `BucketServiceAccountPatchRequest`, `FilestorePatchRequest`, and `*MetadataRequestPatch` types removed; patch bodies now reuse the full request types
+
 ## [0.7.3] - 2026-07-17
 
 ### Fixed
@@ -131,3 +142,4 @@ Public release
 [0.7.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.0
 [0.7.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.2
 [0.7.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.7.3
+[0.8.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.8.0
