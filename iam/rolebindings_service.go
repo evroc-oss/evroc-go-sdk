@@ -5,6 +5,8 @@ package iam
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/evroc-oss/evroc-go-sdk/internal/rest"
 	"github.com/evroc-oss/evroc-go-sdk/types/iam"
@@ -15,10 +17,39 @@ type RoleBindingsService struct {
 	client *Client
 }
 
+var (
+	userPrincipalRe           = regexp.MustCompile(`^/iam/users/([^/]+)$`)
+	serviceAccountPrincipalRe = regexp.MustCompile(`^/iam/projects/([^/]+)/serviceAccounts/([^/]+)$`)
+)
+
+// DeriveRoleBindingName derives the conventional role binding name from a
+// principal FQID: u-{user uuid} for users, sa-{project}.{service account name}
+// for service accounts. IAM enforces this convention server-side, so
+// CreateProjectRoleBinding and CreateOrgRoleBinding always set it themselves.
+// Exported so callers (e.g. the Terraform provider) can recompute the name a
+// binding must have from a principal alone, without an extra API call.
+func DeriveRoleBindingName(principal string) (string, error) {
+	if m := userPrincipalRe.FindStringSubmatch(principal); m != nil {
+		return "u-" + m[1], nil
+	}
+	if m := serviceAccountPrincipalRe.FindStringSubmatch(principal); m != nil {
+		return fmt.Sprintf("sa-%s.%s", m[1], m[2]), nil
+	}
+	return "", fmt.Errorf("cannot derive role binding name from principal %q: expected /iam/users/<uuid> or /iam/projects/<project>/serviceAccounts/<name>", principal)
+}
+
 // --- Project-scoped CRUD ---
 
-// CreateProjectRoleBinding creates a project-scoped role binding.
+// CreateProjectRoleBinding creates a project-scoped role binding. The name is
+// always derived from request.Spec.Principal; any Metadata.Id the caller sets
+// is overwritten.
 func (s *RoleBindingsService) CreateProjectRoleBinding(ctx context.Context, request *iam.RolebindingRequest) (*iam.Rolebinding, error) {
+	name, err := DeriveRoleBindingName(request.Spec.Principal)
+	if err != nil {
+		return nil, err
+	}
+	request.Metadata.Id = name
+
 	path := s.client.path.ProjectCollectionPath(
 		s.client.parent.DefaultProject(),
 		resourceRoleBindings)
@@ -77,8 +108,16 @@ func (s *RoleBindingsService) RevokeProjectRole(ctx context.Context, req *iam.Re
 
 // --- Organization-scoped CRUD ---
 
-// CreateOrgRoleBinding creates an organization-scoped role binding.
+// CreateOrgRoleBinding creates an organization-scoped role binding. The name
+// is always derived from req.Spec.Principal; any Metadata.Id the caller sets
+// is overwritten.
 func (s *RoleBindingsService) CreateOrgRoleBinding(ctx context.Context, req *iam.OrgRequest) (*iam.OrgResponse, error) {
+	name, err := DeriveRoleBindingName(req.Spec.Principal)
+	if err != nil {
+		return nil, err
+	}
+	req.Metadata.Id = name
+
 	path := s.client.path.OrgScopedCollectionPath(
 		s.client.parent.DefaultOrganization(),
 		resourceRoleBindings)
