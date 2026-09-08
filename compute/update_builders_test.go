@@ -5,11 +5,13 @@ package compute
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/evroc-oss/evroc-go-sdk/internal/rest"
+	"github.com/evroc-oss/evroc-go-sdk/types/compute"
 )
 
 func TestVMUpdateBuilderApply(t *testing.T) {
@@ -50,6 +52,32 @@ func TestVMUpdateBuilderApply(t *testing.T) {
 			t.Errorf("VM AddLabel Apply failed: %v", err)
 		}
 	})
+}
+
+func TestVMUpdateBuilderSetStackType(t *testing.T) {
+	var patched compute.VirtualMachine
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodPatch {
+			if err := json.NewDecoder(r.Body).Decode(&patched); err != nil {
+				t.Errorf("failed to decode PATCH body: %v", err)
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"apiVersion":"` + builderAPIVersion + `","kind":"VirtualMachine","metadata":{"id":"test"},"spec":{"networking":{"stackType":"ipv4-only"}},"status":{}}`))
+	}))
+	defer server.Close()
+
+	restClient, _ := rest.NewClient(rest.Config{BaseURL: server.URL, HTTPClient: server.Client()})
+	client := NewClient(restClient, &mockContextProvider{})
+
+	_, err := NewVirtualMachineUpdateBuilder("test", client.VirtualMachines()).SetStackType(compute.DualStack).Apply(context.Background())
+	if err != nil {
+		t.Fatalf("VM SetStackType Apply failed: %v", err)
+	}
+	if patched.Spec.Networking.StackType == nil || *patched.Spec.Networking.StackType != compute.DualStack {
+		t.Errorf("expected PATCH to set stackType to %q, got %v", compute.DualStack, patched.Spec.Networking.StackType)
+	}
 }
 
 func TestDiskUpdateBuilderApply(t *testing.T) {

@@ -59,6 +59,7 @@ type VirtualMachineUpdateBuilder struct {
 	removePublicIP       bool
 	placementGroup       *string
 	removePlacementGroup bool
+	stackType            *compute.VirtualMachineSpecNetworkingStackType
 }
 
 // NewVirtualMachineUpdateBuilder creates a new builder for updating a VM.
@@ -162,6 +163,14 @@ func (b *VirtualMachineUpdateBuilder) RemovePlacementGroup() *VirtualMachineUpda
 	return b
 }
 
+// SetStackType changes the VM's network stack type ("dual-stack", "ipv4-only", or "ipv6-only").
+// VM must be stopped before changing stack type.
+func (b *VirtualMachineUpdateBuilder) SetStackType(st compute.VirtualMachineSpecNetworkingStackType) *VirtualMachineUpdateBuilder {
+	b.stackType = &st
+	b.updates["stack_type"] = string(st)
+	return b
+}
+
 // Apply applies all pending updates to the VM.
 func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.VirtualMachine, error) {
 	if len(b.updates) == 0 {
@@ -244,6 +253,11 @@ func (b *VirtualMachineUpdateBuilder) Apply(ctx context.Context) (*compute.Virtu
 			placementGroupPath := b.service.resolvePlacementGroupPath(*b.placementGroup)
 			vm.Spec.Placement.PlacementGroupRef = &placementGroupPath
 		}
+	}
+
+	// Apply stack type change
+	if b.stackType != nil {
+		vm.Spec.Networking.StackType = b.stackType
 	}
 
 	// Apply label changes
