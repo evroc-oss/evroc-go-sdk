@@ -19,7 +19,7 @@ vm := builder.
 
 ## Compute
 
-**IMPORTANT: All compute resources (VMs, Disks, PlacementGroups) require a zone to be specified. Zones are mandatory.**
+**VMs, Disks, and PlacementGroups require a zone. CustomDiskImages are regional and do not take a zone.**
 
 Available zones: `a`, `b`, `c`
 
@@ -33,7 +33,7 @@ sg, _ := client.Networking().SecurityGroups().Create(ctx, sgBuilder.Build())
 vm := compute.NewVirtualMachineBuilder("my-vm").
     WithBootDisk(disk.Ref()).         // Use .Ref() for created resources
     WithSecurityGroup(sg.Ref()).
-    WithVMInstanceType("c1a.m").
+    WithComputeProfile(compute.VMSizeC1aM).
     WithSSHKey("ssh-rsa AAAA...").
     WithZone("a").  // REQUIRED: Zone must be specified (a, b, or c)
     Build()
@@ -45,7 +45,7 @@ vm = compute.NewVirtualMachineBuilder("production-vm").
     WithBootDisk(client.Compute().DiskRef("boot-disk")).
     WithDataDisk(client.Compute().DiskRef("data-disk-1")).
     WithDataDisk(client.Compute().DiskRef("data-disk-2")).
-    WithVMInstanceType("m1a.xl").
+    WithComputeProfile(compute.VMSizeM1aXL).
     WithSSHKey(sshPublicKey).
     WithCloudInit(cloudInitScript).
     WithSecurityGroup(client.Networking().SecurityGroupRef("web-servers")).
@@ -59,7 +59,7 @@ vm = compute.NewVirtualMachineBuilder("production-vm").
 ```go
 // Create a 100GB disk with Ubuntu 24.04 image
 disk := compute.NewDiskBuilder("my-disk").
-    WithImage(string(compute.DiskImageUbuntu2404)).
+    WithDiskImage(compute.DiskImageUbuntu2404).
     WithSizeGB(100).  // Disk capacity in gigabytes
     WithZone("a").  // REQUIRED: Zone must be specified (a, b, or c)
     Build()
@@ -72,6 +72,23 @@ dataDisk := compute.NewDiskBuilder("data-disk").
     WithZone("a").  // REQUIRED: Zone must be specified (a, b, or c)
     Build()
 ```
+
+### Custom disk images
+
+```go
+// Reference an image already registered in the client's project and region.
+req := compute.NewDiskBuilder("custom-boot-disk").
+    WithCustomImage(client.Compute().CustomDiskImageRef("my-image")).
+    WithZone("a").
+    WithSizeGB(50).
+    Build()
+disk, err := client.Compute().Disks().Create(ctx, req)
+```
+
+`CustomDiskImages()` provides Create/Get/List/Patch/Delete, Labels,
+WaitForReady and WaitForDeleted. Use `NewCustomDiskImageBuilder` to register an
+existing bucket object. See [custom disk images](custom-disk-images.md) for the
+source object version, authorization and lifecycle requirements.
 
 ### Placement Groups
 
@@ -116,14 +133,14 @@ disk2, _ := client.Compute().Disks().Create(ctx, diskBuilder2.Build())
 // Create VMs in the placement group - use .Ref() for resources we just created
 vm1 := compute.NewVirtualMachineBuilder("web-server-1").
     WithBootDisk(disk1.Ref()).
-    WithVMInstanceType("c1a.m").
+    WithComputeProfile(compute.VMSizeC1aM).
     WithZone("a").
     WithPlacementGroup(createdPG.Ref()).  // Use the PG we just created
     Build()
 
 vm2 := compute.NewVirtualMachineBuilder("web-server-2").
     WithBootDisk(disk2.Ref()).
-    WithVMInstanceType("c1a.m").
+    WithComputeProfile(compute.VMSizeC1aM).
     WithZone("a").
     WithPlacementGroup(createdPG.Ref()).  // Same placement group
     Build()
@@ -317,3 +334,7 @@ project, err := client.IAM().Projects().Create(ctx,
         Build(),
 )
 ```
+
+`ComputeProfile` aliases `VMSize`; existing string setters remain supported.
+Use `DiskImage(name)` or `ComputeProfile(name)` for runtime names, and
+`SetComputeProfile(profile)` to update a stopped VM.

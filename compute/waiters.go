@@ -441,3 +441,59 @@ func (s *SnapshotsService) WaitForDeleted(ctx context.Context, name string, time
 		return false, nil
 	})
 }
+
+// WaitForReady polls the custom image until it has a Ready condition with status True.
+func (s *CustomDiskImagesService) WaitForReady(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) (*compute.CustomDiskImage, error) {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "customDiskImage"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	var result *compute.CustomDiskImage
+	err := rest.WaitFor(ctx, config, func() (bool, error) {
+		image, err := s.Get(ctx, name)
+		if err != nil {
+			return false, nil
+		}
+		if IsCustomDiskImageReady(image) {
+			result = image
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// WaitForDeleted polls until the custom image returns 404 (deleted).
+func (s *CustomDiskImagesService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "customDiskImage"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
+}

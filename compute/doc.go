@@ -11,6 +11,7 @@
 // The compute package provides access to the following resources:
 //
 //   - Virtual Machines: Create and manage VM instances
+//   - Custom Disk Images: Register uploaded images for creating boot disks
 //   - Disks: Create and manage persistent block storage
 //   - Placement Groups: Control VM placement for high availability
 //   - Hotswap Disk Attachments: Attach/detach disks without VM restart

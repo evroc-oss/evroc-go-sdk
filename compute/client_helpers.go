@@ -53,3 +53,9 @@ func (c *Client) SubnetRef(name string) string {
 func (c *Client) DefaultSubnetRef(zone string) string {
 	return c.SubnetRef(fmt.Sprintf("default-%s-%s", c.parent.DefaultRegion(), zone))
 }
+
+// CustomDiskImageRef constructs a custom image reference within the client's project and region.
+func (c *Client) CustomDiskImageRef(name string) CustomDiskImageRef {
+	return CustomDiskImageRef(fmt.Sprintf("/compute/projects/%s/regions/%s/customDiskImages/%s",
+		c.parent.DefaultProject(), c.parent.DefaultRegion(), name))
+}
