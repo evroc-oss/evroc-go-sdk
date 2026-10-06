@@ -32,3 +32,7 @@ type SecurityGroupRef = networkingtypes.SecurityGroupRef
 // PlacementGroupRef must always be a Fully Qualified ID (FQID).
 // Use client.Compute().PlacementGroupRef(name) to construct from a name, or pg.Ref() from a resource.
 type PlacementGroupRef = computetypes.PlacementGroupRef
+
+// CustomDiskImageRef is a fully qualified reference to a custom disk image.
+// Construct it with client.Compute().CustomDiskImageRef(name) or image.Ref().
+type CustomDiskImageRef = computetypes.CustomDiskImageRef

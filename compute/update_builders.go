@@ -119,6 +119,12 @@ func (b *VirtualMachineUpdateBuilder) RemoveSecurityGroup(sgName string) *Virtua
 	return b
 }
 
+// SetComputeProfile changes the VM compute profile using a typed name or reference.
+// VM must be stopped before changing compute profile.
+func (b *VirtualMachineUpdateBuilder) SetComputeProfile(profile ComputeProfile) *VirtualMachineUpdateBuilder {
+	return b.Resize(string(profile))
+}
+
 // Resize changes the VM compute profile (size).
 // VM must be stopped before changing compute profile.
 func (b *VirtualMachineUpdateBuilder) Resize(newSize string) *VirtualMachineUpdateBuilder {
