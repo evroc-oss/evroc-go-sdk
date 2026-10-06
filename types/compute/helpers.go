@@ -67,3 +67,17 @@ func (hda *HotswapDiskAttachment) Ref() string {
 	return fmt.Sprintf("/compute/projects/%s/regions/%s/hotswapDiskAttachments/%s",
 		*hda.Metadata.Project, *hda.Metadata.Region, hda.Metadata.Id)
 }
+
+// CustomDiskImageRef is a fully qualified reference to a custom disk image.
+type CustomDiskImageRef string
+
+// String returns the fully qualified resource reference.
+func (r CustomDiskImageRef) String() string { return string(r) }
+
+// Ref returns the custom image's reference, or an empty reference if its metadata is incomplete.
+func (image *CustomDiskImage) Ref() CustomDiskImageRef {
+	if image == nil || image.Metadata.Project == nil || image.Metadata.Region == nil || image.Metadata.Id == "" || *image.Metadata.Project == "" || *image.Metadata.Region == "" {
+		return ""
+	}
+	return CustomDiskImageRef(fmt.Sprintf("/compute/projects/%s/regions/%s/customDiskImages/%s", *image.Metadata.Project, *image.Metadata.Region, image.Metadata.Id))
+}

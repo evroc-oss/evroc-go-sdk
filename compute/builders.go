@@ -24,7 +24,8 @@ const (
 // DiskBuilder provides a fluent interface for creating Disk resources.
 type DiskBuilder struct {
 	id          string
-	image       string
+	image       DiskImage
+	customImage CustomDiskImageRef
 	snapshotRef string
 	sizeAmount  int32
 	sizeUnit    string
@@ -41,8 +42,26 @@ func NewDiskBuilder(id string) *DiskBuilder {
 }
 
 // WithImage sets the disk image (e.g., "ubuntu-minimal.24-04.1", "ubuntu.24-04.1", "rocky.10-0.1").
+// For typed image constants, use WithDiskImage. It replaces any previously selected custom image.
 func (b *DiskBuilder) WithImage(image string) *DiskBuilder {
+	return b.WithDiskImage(DiskImage(image))
+}
+
+// WithDiskImage selects an evroc-provided OS image using a typed image name.
+// The API validates existence and availability; names are not limited to SDK constants.
+func (b *DiskBuilder) WithDiskImage(image DiskImage) *DiskBuilder {
 	b.image = image
+	b.customImage = ""
+	return b
+}
+
+// WithCustomImage selects an existing custom image using its fully qualified reference.
+// Use client.Compute().CustomDiskImageRef(name) or image.Ref() to construct the reference.
+// Calling a source setter replaces any previously selected image or snapshot.
+func (b *DiskBuilder) WithCustomImage(ref CustomDiskImageRef) *DiskBuilder {
+	b.customImage = ref
+	b.image = ""
+	b.snapshotRef = ""
 	return b
 }
 
@@ -85,7 +104,13 @@ func (b *DiskBuilder) Build() *compute.DiskRequest {
 
 	// Add source (image, snapshot, or blank)
 	if b.image != "" {
-		imageRef := "/compute/global/diskImages/evroc/" + b.image
+		imageRef := "/compute/global/diskImages/evroc/" + string(b.image)
+		diskReq.Spec.Source = &compute.DiskSpecSource{
+			Type:         compute.DiskSpecSourceTypeImage,
+			DiskImageRef: &imageRef,
+		}
+	} else if b.customImage != "" {
+		imageRef := b.customImage.String()
 		diskReq.Spec.Source = &compute.DiskSpecSource{
 			Type:         compute.DiskSpecSourceTypeImage,
 			DiskImageRef: &imageRef,
@@ -94,6 +119,10 @@ func (b *DiskBuilder) Build() *compute.DiskRequest {
 		diskReq.Spec.Source = &compute.DiskSpecSource{
 			Type:        compute.DiskSpecSourceTypeSnapshot,
 			SnapshotRef: &b.snapshotRef,
+		}
+	} else {
+		diskReq.Spec.Source = &compute.DiskSpecSource{
+			Type: compute.DiskSpecSourceTypeBlank,
 		}
 	}
 
@@ -117,10 +146,11 @@ func (b *DiskBuilder) Build() *compute.DiskRequest {
 	return diskReq
 }
 
-// WithSnapshot sets the disk to be created from a snapshot.
+// WithSnapshot sets the disk to be created from a snapshot, replacing any image source.
 func (b *DiskBuilder) WithSnapshot(snapshotRef string) *DiskBuilder {
 	b.snapshotRef = snapshotRef
 	b.image = ""
+	b.customImage = ""
 	return b
 }
 
@@ -170,7 +200,7 @@ func (b *SnapshotBuilder) Create(ctx context.Context, client *SnapshotsService) 
 type VirtualMachineBuilder struct {
 	id             string
 	diskRefs       []diskRef
-	vmSize         string
+	vmSize         ComputeProfile
 	publicIP       PublicIPRef
 	securityGroups []SecurityGroupRef
 	subnetRef      string
@@ -221,12 +251,19 @@ func (b *VirtualMachineBuilder) WithDataDisk(ref DiskRef) *VirtualMachineBuilder
 
 // WithVMInstanceType sets the VM compute profile (e.g., "a1a.xs", "c1a.m", "m1a.l").
 // Note: Function name says "InstanceType" for backwards compatibility, but this sets the compute profile.
+// For typed profile values, use WithComputeProfile.
 func (b *VirtualMachineBuilder) WithVMInstanceType(profile string) *VirtualMachineBuilder {
+	return b.WithComputeProfile(ComputeProfile(profile))
+}
+
+// WithComputeProfile selects a VM compute profile using a typed profile name or reference.
+// Existing VMSize constants can be passed directly. The API validates availability.
+func (b *VirtualMachineBuilder) WithComputeProfile(profile ComputeProfile) *VirtualMachineBuilder {
 	b.vmSize = profile
 	return b
 }
 
-// WithSize is deprecated. Use WithVMInstanceType instead.
+// WithSize is deprecated. Use WithComputeProfile for typed values or WithVMInstanceType for strings.
 func (b *VirtualMachineBuilder) WithSize(size string) *VirtualMachineBuilder {
 	return b.WithVMInstanceType(size)
 }
@@ -317,7 +354,7 @@ func (b *VirtualMachineBuilder) Build() *compute.VirtualMachineRequest {
 			Id: b.id,
 		},
 		Spec: compute.VirtualMachineSpec{
-			ComputeProfileRef: b.vmSize,
+			ComputeProfileRef: string(b.vmSize),
 			Running:           b.running,
 			Placement:         compute.VirtualMachineSpecPlacement{}, // Always required, non-pointer
 		},

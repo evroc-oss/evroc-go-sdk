@@ -26,7 +26,8 @@ const (
 // Disk Images
 // ============================================================================
 
-// DiskImage represents a valid OS image name.
+// DiskImage identifies an evroc-provided OS image.
+// Constants are known examples, not an exhaustive catalog; availability is validated by the API.
 type DiskImage string
 
 const (
@@ -97,8 +98,14 @@ func GetValidDiskImagesString() string {
 // VM Compute Profiles (VM Sizes)
 // ============================================================================
 
-// VMSize represents a valid VM compute profile.
+// VMSize identifies a VM compute profile.
+// Constants are known examples, not an exhaustive catalog; availability is validated by the API.
 type VMSize string
+
+// ComputeProfile is the semantic name for a VM compute profile.
+// It is an alias of VMSize so existing VMSize values and constants remain assignable.
+// Convert names obtained from configuration or the API with ComputeProfile(name).
+type ComputeProfile = VMSize
 
 // A-series: General-purpose VMs (1:4 CPU:Memory ratio)
 const (

@@ -111,6 +111,7 @@ jobs:
           - compute
           - context-and-retries
           - create-vm
+          - custom-images
           - hotswap-disk
           - iam
           - k3s-cluster

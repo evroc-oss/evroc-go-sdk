@@ -30,9 +30,9 @@ const (
 	sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFeENOwB0QwUEicJGrFxt44yiShgBWzANhpE/5gNw041 user@example.com"
 
 	// Configuration.
-	diskImage  = string(compute.DiskImageUbuntu2404)
+	diskImage  = compute.DiskImageUbuntu2404
 	diskSizeGB = 50
-	vmSize     = string(compute.VMSizeA1aXS)
+	vmSize     = compute.VMSizeA1aXS
 	zone       = "a"
 
 	// Timeouts.
@@ -71,7 +71,7 @@ func main() {
 	// Example 2: Create a disk using the builder pattern
 	fmt.Println("\n2. Creating disk with builder pattern...")
 	diskReq := compute.NewDiskBuilder(diskName).
-		WithImage(diskImage).
+		WithDiskImage(diskImage).
 		WithSizeGB(diskSizeGB).
 		WithZone(zone).
 		Build()
@@ -93,7 +93,7 @@ func main() {
 	// We use .Ref() to get type-safe references to created resources.
 	fmt.Println("\n3. Creating VM with public IP and SSH access...")
 	vmReq := compute.NewVirtualMachineBuilder(vmName).
-		WithSize(vmSize).
+		WithComputeProfile(vmSize).
 		WithBootDisk(disk.Ref()).                                        // Use the disk we just created
 		WithPublicIP(pubIP.Ref()).                                       // Use the public IP we just created
 		WithSecurityGroup(client.Networking().SecurityGroupRef(sgName)). // Pre-existing SG - construct ref from name

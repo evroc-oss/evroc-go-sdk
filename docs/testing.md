@@ -50,6 +50,7 @@ E2E=1 go test -v -tags=e2e ./compute -run TestE2E_Disk_Lifecycle -timeout 60m
 - Always use a dedicated test project, never production
 - Tests attempt cleanup but failures may leave orphaned resources
 - All test resources are prefixed with `e2e-test-`
+- `TestE2E_CustomDiskImage_Lifecycle` uploads an object over S3; outside production set `E2E_S3_ENDPOINT` to that environment's S3 host (e.g. `s3.<region>.<domain>`)
 - Default timeout is 120 minutes
 
 ### Writing E2E Tests

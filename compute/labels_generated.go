@@ -10,6 +10,16 @@ import (
 	compute "github.com/evroc-oss/evroc-go-sdk/types/compute"
 )
 
+// Labels returns a label helper for CustomDiskImages.
+func (s *CustomDiskImagesService) Labels() *labels.Helper[*compute.CustomDiskImage] {
+	return labels.For[*compute.CustomDiskImage](s, func(r *compute.CustomDiskImage) map[string]string {
+		if r.Metadata.UserLabels == nil {
+			return nil
+		}
+		return map[string]string(*r.Metadata.UserLabels)
+	})
+}
+
 // Labels returns a label helper for Disks.
 func (s *DisksService) Labels() *labels.Helper[*compute.Disk] {
 	return labels.For[*compute.Disk](s, func(r *compute.Disk) map[string]string {
