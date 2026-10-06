@@ -7,6 +7,7 @@ Complete examples demonstrating the evroc Go SDK. Examples are self-contained `m
 | Example | Description |
 |---------|-------------|
 | [authentication](authentication/) | Authentication methods |
+| [custom-images](custom-images/) | Register a versioned bucket image and create a boot disk |
 | [create-vm](create-vm/) | VM creation with disk, public IP, and SSH |
 | [web-server](web-server/) | Web server with nginx and cloud-init |
 | [k3s-cluster](k3s-cluster/) | Kubernetes cluster across 3 availability zones |

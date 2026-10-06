@@ -155,7 +155,7 @@ func main() {
     // This disk contains the operating system the VM will boot from
     disk, err := client.Compute().Disks().Create(ctx,
         compute.NewDiskBuilder("my-disk").
-            WithImage(compute.DiskImageUbuntuMinimal2404).  // Ubuntu 24.04 minimal
+            WithDiskImage(compute.DiskImageUbuntuMinimal2404).  // Ubuntu 24.04 minimal
             WithSizeGB(50).                                  // 50GB disk size
             WithZone("a").                                   // Zone is required for compute resources
             Build(),
@@ -174,7 +174,7 @@ func main() {
     vm, err := client.Compute().VirtualMachines().Create(ctx,
         compute.NewVirtualMachineBuilder("my-vm").
             WithBootDisk(disk.Ref()).                       // Use .Ref() for resources we just created
-            WithVMInstanceType(profile).                    // Compute profile (e.g., a1a.xs)
+            WithComputeProfile(compute.ComputeProfile(profile)). // Compute profile (e.g., a1a.xs)
             WithSecurityGroup(sg.Ref()).                    // Use .Ref() for resources we just created
             WithSSHKey("ssh-rsa AAAAB3NzaC1yc2EA...").     // Your SSH public key for authentication
             WithZone("a").                                  // Zone is required for compute resources
@@ -279,6 +279,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 If this project reaches end-of-life, the README will be updated with archived
 status and a final release will be made.
+
+See the [custom disk image guide](docs/custom-disk-images.md) for registering and using your own images.
 
 ## License
 

@@ -65,6 +65,9 @@ jobs:
           PACKAGES=$(go list ./... | grep -v '/examples/' | grep -v '/internal/codegen' | grep -v '/cmd/')
           go test -v -race -coverprofile=coverage.out $PACKAGES
 
+      - name: Test code generation
+        run: go test ./internal/codegen
+
       - name: Coverage report
         run: go tool cover -func=coverage.out
 
@@ -111,6 +114,7 @@ jobs:
           - compute
           - context-and-retries
           - create-vm
+          - custom-images
           - hotswap-disk
           - iam
           - k3s-cluster

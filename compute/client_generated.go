@@ -15,6 +15,7 @@ const (
 	apiVersion = "v1beta2"
 
 	// Resource type constants
+	resourceCustomDiskImages       = "customDiskImages"
 	resourceComputeProfiles        = "global/computeProfiles"
 	resourceDiskImages             = "global/diskImages/evroc"
 	resourceDisks                  = "disks"
@@ -41,6 +42,10 @@ type Client struct {
 
 // List response types
 type (
+	CustomDiskImageList struct {
+		Items []compute.CustomDiskImage `json:"items,omitempty"`
+	}
+
 	ComputeprofileList struct {
 		Items []compute.Computeprofile `json:"items,omitempty"`
 	}
@@ -77,6 +82,11 @@ func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 		path:   rest.NewServicePath("compute", apiVersion),
 		parent: parent,
 	}
+}
+
+// CustomDiskImages returns the CustomDiskImages service
+func (c *Client) CustomDiskImages() *CustomDiskImagesService {
+	return &CustomDiskImagesService{client: c}
 }
 
 // ComputeProfiles returns the ComputeProfiles service

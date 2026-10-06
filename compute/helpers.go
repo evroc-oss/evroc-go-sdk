@@ -128,3 +128,17 @@ func GetVMState(vm *computetypes.VirtualMachine) string {
 
 	return "Pending"
 }
+
+// IsCustomDiskImageReady reports whether the registration has a Ready=True condition.
+// Readiness does not validate source image contents or mean a boot disk has been imported.
+func IsCustomDiskImageReady(image *computetypes.CustomDiskImage) bool {
+	if image == nil || image.Status.Conditions == nil {
+		return false
+	}
+	for _, condition := range *image.Status.Conditions {
+		if condition.Type == "Ready" && condition.Status == "True" {
+			return true
+		}
+	}
+	return false
+}

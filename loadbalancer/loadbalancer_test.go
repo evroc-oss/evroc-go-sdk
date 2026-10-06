@@ -330,6 +330,17 @@ func TestBackendServiceBuilder(t *testing.T) {
 	}
 }
 
+func TestBackendServiceBuilderHealthCheckPort(t *testing.T) {
+	// Set before the health check type, which replaces the whole health check.
+	req := NewBackendServiceBuilder("svc").
+		WithHealthCheckPort(32000).
+		WithHTTPHealthCheck("/healthz").
+		Build()
+	if tp := req.Spec.HealthCheck.TargetPort; tp == nil || *tp != 32000 {
+		t.Errorf("expected TargetPort 32000, got %v", tp)
+	}
+}
+
 func TestL4RouteBuilder(t *testing.T) {
 	client, server := setupTestClient(t, lbMux())
 	defer server.Close()

@@ -117,12 +117,13 @@ func (b *BackendPoolBuilder) Create(ctx context.Context, client *BackendPoolsSer
 
 // BackendServiceBuilder provides a fluent interface for constructing BackendserviceRequest objects.
 type BackendServiceBuilder struct {
-	name           string
-	port           int32
-	backendPoolRef string
-	proxyProtocol  bool
-	healthCheck    *lbtypes.BackendserviceSpecHealthCheck
-	labels         map[string]string
+	name            string
+	port            int32
+	backendPoolRef  string
+	proxyProtocol   bool
+	healthCheck     *lbtypes.BackendserviceSpecHealthCheck
+	healthCheckPort int32
+	labels          map[string]string
 }
 
 // NewBackendServiceBuilder creates a new builder for a BackendService with the given name.
@@ -180,6 +181,14 @@ func (b *BackendServiceBuilder) WithHTTPHealthCheck(path string) *BackendService
 	return b
 }
 
+// WithHealthCheckPort sets the port the health check probes, instead of the
+// backend service port. It applies to whichever health check is configured
+// and has no effect without one.
+func (b *BackendServiceBuilder) WithHealthCheckPort(port int32) *BackendServiceBuilder {
+	b.healthCheckPort = port
+	return b
+}
+
 // WithLabels sets user labels.
 func (b *BackendServiceBuilder) WithLabels(labels map[string]string) *BackendServiceBuilder {
 	b.labels = labels
@@ -204,7 +213,11 @@ func (b *BackendServiceBuilder) Build() *lbtypes.BackendserviceRequest {
 		req.Spec.ProxyProtocol = &pp
 	}
 	if b.healthCheck != nil {
-		req.Spec.HealthCheck = b.healthCheck
+		hc := *b.healthCheck
+		if b.healthCheckPort != 0 {
+			hc.TargetPort = &b.healthCheckPort
+		}
+		req.Spec.HealthCheck = &hc
 	}
 	if len(b.labels) > 0 {
 		ul := lbtypes.UserLabels(b.labels)
