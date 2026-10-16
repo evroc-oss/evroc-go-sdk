@@ -227,3 +227,36 @@ Available sentinel errors:
 - `evroc.ErrConflict` (409) - Resource already exists
 - `evroc.ErrForbidden` (403) - Access denied
 - `evroc.ErrBadRequest` (400) - Invalid request
+
+### Inspecting Structured Errors
+
+For richer error details, extract the structured `APIError` with `errors.As()`:
+
+```go
+var apiErr *evroc.APIError
+if errors.As(err, &apiErr) {
+    log.Printf("status=%d reason=%s debug=%s", apiErr.StatusCode, apiErr.Reason, apiErr.Debug)
+}
+```
+
+`APIError.StatusCode` is the HTTP status code, `Reason` is the API's stable
+textual error code (safe for programmatic handling), and `Debug` is
+human-readable diagnostic text (may change at any time — display only).
+
+### Detecting quota-exceeded errors
+
+When a request is rejected because an organization quota has been reached,
+the API returns HTTP 403 with reason `InsufficientQuota`. Use
+`evroc.IsQuotaError` to detect this specifically (it also detects quota
+errors that have been wrapped by intervening code, e.g. `fmt.Errorf` with
+`%w`):
+
+```go
+_, err := client.Compute().VirtualMachines().Create(ctx, vmReq)
+if evroc.IsQuotaError(err) {
+    log.Println("Quota exceeded — request a quota increase or use a smaller size")
+}
+```
+
+The raw reason string is available as `evroc.ReasonInsufficientQuota` if you
+need to compare against `apiErr.Reason` directly.
