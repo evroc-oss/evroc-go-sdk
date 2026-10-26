@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Package main demonstrates comprehensive compute API usage.
-// Covers: Disks, VirtualMachines, PlacementGroups, HotswapDiskAttachments
+// Covers: Disks, VirtualMachines (incl. console logs), PlacementGroups, HotswapDiskAttachments
 package main
 
 import (
@@ -449,6 +449,17 @@ runcmd:
 		fmt.Println("   ✓ example-vm-complex is ready")
 	} else {
 		fmt.Println("   ⚠ example-vm-complex is not ready yet")
+	}
+
+	// Example 10: Read the last console log lines
+	fmt.Println("\n10. Reading console logs...")
+	logs, err := client.Compute().VirtualMachines().ConsoleLogs(ctx, "sdk-vm-complex")
+	if err != nil {
+		return fmt.Errorf("failed to read console logs: %w", err)
+	}
+	fmt.Printf("   ✓ %d lines\n", len(logs.Logs))
+	for _, line := range logs.Logs[max(0, len(logs.Logs)-5):] {
+		fmt.Printf("     %s\n", line)
 	}
 
 	return nil

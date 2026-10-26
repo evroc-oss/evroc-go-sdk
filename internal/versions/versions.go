@@ -9,7 +9,7 @@ import "fmt"
 
 // SDKVersion is the semantic version of the SDK itself.
 // Update this when releasing new SDK versions.
-const SDKVersion = "0.9.3"
+const SDKVersion = "0.10.1"
 
 // APIVersion represents an API version string (e.g., "v1alpha2", "v1beta", "v1").
 type APIVersion string
@@ -22,7 +22,7 @@ const (
 	NetworkingAPIVersion APIVersion = "v1beta2"
 
 	// IAM API version
-	IAMAPIVersion APIVersion = "v1beta1"
+	IAMAPIVersion APIVersion = "v1beta2"
 
 	// Storage API version
 	StorageAPIVersion APIVersion = "v1"
@@ -35,18 +35,22 @@ const (
 
 	// LoadBalancer API version (pre-release)
 	LoadBalancerAPIVersion APIVersion = "v1alpha1"
+
+	// KMS API version
+	KMSAPIVersion APIVersion = "v1"
 )
 
 // ServiceVersions maps service names to their API versions.
 // This is used by the code generator and can be queried at runtime.
 var ServiceVersions = map[string]APIVersion{
-	"compute":    ComputeAPIVersion,
-	"networking": NetworkingAPIVersion,
-	"iam":        IAMAPIVersion,
-	"storage":    StorageAPIVersion,
-	"quotas":     QuotasAPIVersion,
+	"compute":      ComputeAPIVersion,
+	"networking":   NetworkingAPIVersion,
+	"iam":          IAMAPIVersion,
+	"storage":      StorageAPIVersion,
+	"quotas":       QuotasAPIVersion,
 	"think":        ThinkAPIVersion,
 	"loadbalancer": LoadBalancerAPIVersion,
+	"kms":          KMSAPIVersion,
 }
 
 // APIVersionInfo contains detailed version information for all services.
@@ -59,6 +63,7 @@ type APIVersionInfo struct {
 	Quotas       string
 	Think        string
 	LoadBalancer string
+	KMS          string
 }
 
 // Current returns the current API version information.
@@ -72,6 +77,7 @@ func Current() APIVersionInfo {
 		Quotas:       string(QuotasAPIVersion),
 		Think:        string(ThinkAPIVersion),
 		LoadBalancer: string(LoadBalancerAPIVersion),
+		KMS:          string(KMSAPIVersion),
 	}
 }
 
@@ -86,7 +92,8 @@ func (v APIVersionInfo) String() string {
 			"  storage:      %s\n"+
 			"  quotas:       %s\n"+
 			"  think:        %s\n"+
-			"  loadbalancer: %s (pre-release)",
+			"  loadbalancer: %s (pre-release)\n"+
+			"  kms:          %s",
 		v.SDKVersion,
 		v.Compute,
 		v.Networking,
@@ -95,6 +102,7 @@ func (v APIVersionInfo) String() string {
 		v.Quotas,
 		v.Think,
 		v.LoadBalancer,
+		v.KMS,
 	)
 }
 

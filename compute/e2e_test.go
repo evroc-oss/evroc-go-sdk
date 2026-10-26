@@ -167,6 +167,14 @@ func TestE2E_VirtualMachine_Lifecycle(t *testing.T) {
 	}
 	e2etest.AssertInList(t, vms.Items, vmID, func(v computetypes.VirtualMachine) string { return v.Metadata.Id }, "VM")
 
+	// Read console logs (may be empty this early in boot)
+	t.Logf("Reading console logs for VM: %s", vmID)
+	logs, err := client.Compute().VirtualMachines().ConsoleLogs(ctx, vmID)
+	if err != nil {
+		t.Fatalf("failed to read console logs: %v", err)
+	}
+	t.Logf("Got %d console log lines", len(logs.Logs))
+
 	// Delete VM
 	t.Logf("Deleting VM: %s", vmID)
 	if err := client.Compute().VirtualMachines().Delete(ctx, vmID); err != nil {

@@ -14,6 +14,7 @@
 //	export EVROC_PROJECT=my-project
 //	export EVROC_REGION=se-sto
 //	go run main.go            # create everything
+//	go run main.go revoke     # revoke the credential (e.g. a leaked key)
 //	go run main.go destroy    # clean up
 package main
 
@@ -47,6 +48,10 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "destroy" {
 		destroy(ctx, client)
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "revoke" {
+		revoke(ctx, client)
 		return
 	}
 
@@ -129,7 +134,18 @@ func main() {
 	fmt.Printf("  export EVROC_SERVICE_ACCOUNT_ID=%s\n", saID)
 	fmt.Printf("  export EVROC_SERVICE_ACCOUNT_SECRET=%s\n", absKeyFile)
 	fmt.Println()
-	fmt.Println("To clean up:  go run main.go destroy")
+	fmt.Println("To revoke the key:  go run main.go revoke")
+	fmt.Println("To clean up:        go run main.go destroy")
+}
+
+// revoke permanently invalidates the credential without deleting it, so its
+// record stays visible (e.g. for auditing a leaked key). This cannot be undone.
+func revoke(ctx context.Context, client *evroc.Client) {
+	fmt.Println("Revoking credential...")
+	if err := client.IAM().ServiceAccountCredentials(saID).Revoke(ctx, credID, "revoked by SDK example"); err != nil {
+		log.Fatalf("Failed to revoke credential: %v", err)
+	}
+	fmt.Printf("  Revoked %s\n", credID)
 }
 
 func destroy(ctx context.Context, client *evroc.Client) {

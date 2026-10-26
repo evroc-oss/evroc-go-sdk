@@ -3,7 +3,12 @@
 
 package iam
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"github.com/evroc-oss/evroc-go-sdk/types/iam"
+)
 
 func TestProjectBuilder(t *testing.T) {
 	req, err := NewProjectBuilder("test-project", "org-123").
@@ -45,5 +50,27 @@ func TestProjectBuilder(t *testing.T) {
 		if (*req.Metadata.UserLabels)["tier"] != "production" {
 			t.Errorf("Expected label tier='production', got %s", (*req.Metadata.UserLabels)["tier"])
 		}
+	}
+}
+
+func TestServiceAccountCredentialBuilderHMACSigV4(t *testing.T) {
+	req := NewServiceAccountCredentialBuilder("key-1", "proj", "/iam/projects/proj/serviceAccounts/sa", time.Now()).
+		WithHMACSigV4().
+		WithAccessTokenLifetime(600).
+		Build()
+
+	if req.Spec.Type != iam.HmacSigv4 {
+		t.Errorf("expected type %q, got %q", iam.HmacSigv4, req.Spec.Type)
+	}
+	if req.Spec.Rs256Jwt != nil {
+		t.Errorf("expected no rs256Jwt block for HMAC, got %+v", req.Spec.Rs256Jwt)
+	}
+}
+
+func TestServiceAccountCredentialBuilderDefaultsToRS256(t *testing.T) {
+	req := NewServiceAccountCredentialBuilder("key-1", "proj", "/iam/projects/proj/serviceAccounts/sa", time.Now()).Build()
+
+	if req.Spec.Type != iam.Rs256Jwt {
+		t.Errorf("expected type %q, got %q", iam.Rs256Jwt, req.Spec.Type)
 	}
 }

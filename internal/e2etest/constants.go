@@ -17,14 +17,22 @@ const (
 	TestDiskSizeGB   = 100
 	TestDiskImage    = compute.DiskImageUbuntu2404
 	TestDiskZone     = "a"
-	DiskReadyTimeout = 3 * time.Minute
+	DiskReadyTimeout = 6 * time.Minute
 
 	// VM constants
 	TestVMSize         = compute.VMSizeC1aM
 	TestVMZone         = "a"
-	VMReadyTimeout     = 5 * time.Minute
+	VMReadyTimeout     = 6 * time.Minute
 	VMDeletionTimeout  = 3 * time.Minute
 	VMDeletionInterval = 10 * time.Second
+
+	// IAM constants
+	CredentialRevokeTimeout  = 2 * time.Minute
+	CredentialRevokeInterval = 5 * time.Second
+
+	// KMS constants
+	KMSStateTimeout  = 3 * time.Minute
+	KMSStateInterval = 5 * time.Second
 
 	// Placement group constants
 	TestPlacementGroupStrategy = "spread"

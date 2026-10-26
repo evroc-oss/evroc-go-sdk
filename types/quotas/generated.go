@@ -34,9 +34,9 @@ type BaseMetadataResponse struct {
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -91,6 +91,10 @@ type OrgquotaSpecQuotas struct {
 		// across all resource groups and VMs. There is a quota per GPU model.
 		Gpus *OrgquotaSpecQuotasGpus `json:"gpus,omitempty"`
 
+		// HotswapDiskAttachments HotswapDiskAttachments defines the maximum number of hotswap disk attachments that this
+		// Organization is allowed to use, aggregated across all resource groups.
+		HotswapDiskAttachments *int64 `json:"hotswapDiskAttachments,omitempty"`
+
 		// Memory Memory defines the memory quota that this Organization is allowed
 		// to use, aggregated across all resource groups and VMs, with a unit, e.g. "600 GB".
 		Memory *string `json:"memory,omitempty"`
@@ -143,6 +147,9 @@ type OrgquotaStatusQuotaUsage struct {
 
 		// Gpus GPUs reports the current usage of GPUs.
 		Gpus *OrgquotaStatusQuotaUsageGpus `json:"gpus,omitempty"`
+
+		// HotswapDiskAttachments HotswapDiskAttachments reports the current number of hotswap disk attachments.
+		HotswapDiskAttachments *int64 `json:"hotswapDiskAttachments,omitempty"`
 
 		// Memory Memory reports the current usage of memory in human readable format
 		Memory *string `json:"memory,omitempty"`

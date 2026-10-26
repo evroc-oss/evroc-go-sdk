@@ -149,14 +149,14 @@ type CustomDiskImageStatusConditionsItem struct {
 // CustomDiskImageStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
 type CustomDiskImageStatusConditionsItemStatus string
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImages.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesParams struct {
+// ListCustomDiskImagesParams defines parameters for ListCustomDiskImages.
+type ListCustomDiskImagesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImages for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesJSONRequestBody = CustomDiskImageRequest
+// CreateCustomDiskImageJSONRequestBody defines body for CreateCustomDiskImage for application/json ContentType.
+type CreateCustomDiskImageJSONRequestBody = CustomDiskImageRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesCustomDiskImageIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesCustomDiskImageID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameCustomDiskImagesCustomDiskImageIDJSONRequestBody = CustomDiskImageRequest
+// UpdateCustomDiskImageJSONRequestBody defines body for UpdateCustomDiskImage for application/json ContentType.
+type UpdateCustomDiskImageJSONRequestBody = CustomDiskImageRequest

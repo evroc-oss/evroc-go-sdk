@@ -54,6 +54,7 @@ import (
 	"github.com/evroc-oss/evroc-go-sdk/internal/auth"
 	"github.com/evroc-oss/evroc-go-sdk/internal/rest"
 	"github.com/evroc-oss/evroc-go-sdk/internal/versions"
+	"github.com/evroc-oss/evroc-go-sdk/kms"
 	"github.com/evroc-oss/evroc-go-sdk/loadbalancer"
 	"github.com/evroc-oss/evroc-go-sdk/metrics"
 	"github.com/evroc-oss/evroc-go-sdk/networking"
@@ -77,6 +78,7 @@ type Client struct {
 	quotas       *quotas.Client
 	think        *think.Client
 	loadbalancer *loadbalancer.Client
+	kms          *kms.Client
 }
 
 // Option is a functional option for configuring the Client.
@@ -271,6 +273,7 @@ func (c *Client) initAPIClients(ctx context.Context) error {
 	c.quotas = quotas.NewClient(restClient, c).WithMetrics(c.metrics)
 	c.think = think.NewClient(restClient, c).WithMetrics(c.metrics)
 	c.loadbalancer = loadbalancer.NewClient(restClient, c).WithMetrics(c.metrics)
+	c.kms = kms.NewClient(restClient, c).WithMetrics(c.metrics)
 
 	return nil
 }
@@ -350,6 +353,14 @@ func (c *Client) Think() *think.Client {
 //   - L4 Routes
 func (c *Client) LoadBalancer() *loadbalancer.Client {
 	return c.loadbalancer
+}
+
+// KMS returns the KMS API client
+//
+// Provides access to:
+//   - Keys
+func (c *Client) KMS() *kms.Client {
+	return c.kms
 }
 
 // Config returns the current configuration.

@@ -171,6 +171,7 @@ type ServiceAccountCredentialBuilder struct {
 	expiresAt           time.Time
 	description         string
 	accessTokenLifetime int
+	credentialType      iam.ServiceaccountcredentialSpecType
 }
 
 // NewServiceAccountCredentialBuilder creates a new builder for ServiceAccountCredential.
@@ -182,6 +183,7 @@ func NewServiceAccountCredentialBuilder(id string, project string, serviceAccoun
 		project:            project,
 		serviceAccountFQID: serviceAccountFQID,
 		expiresAt:          expiresAt,
+		credentialType:     iam.Rs256Jwt,
 	}
 }
 
@@ -191,7 +193,14 @@ func (b *ServiceAccountCredentialBuilder) WithDescription(description string) *S
 	return b
 }
 
-// WithAccessTokenLifetime sets the access token lifetime in seconds.
+// WithHMACSigV4 creates an HMAC-SigV4 key instead of an RS256 JWT key.
+// The secret access key is returned only once, in the Create response status.
+func (b *ServiceAccountCredentialBuilder) WithHMACSigV4() *ServiceAccountCredentialBuilder {
+	b.credentialType = iam.HmacSigv4
+	return b
+}
+
+// WithAccessTokenLifetime sets the access token lifetime in seconds. RS256 JWT only.
 func (b *ServiceAccountCredentialBuilder) WithAccessTokenLifetime(seconds int) *ServiceAccountCredentialBuilder {
 	b.accessTokenLifetime = seconds
 	return b
@@ -211,7 +220,7 @@ func (b *ServiceAccountCredentialBuilder) Build() *iam.ServiceaccountcredentialR
 				Fqid: b.serviceAccountFQID,
 			},
 			ExpiresAt: b.expiresAt,
-			Type:      iam.Rs256Jwt,
+			Type:      b.credentialType,
 		},
 	}
 
@@ -219,7 +228,7 @@ func (b *ServiceAccountCredentialBuilder) Build() *iam.ServiceaccountcredentialR
 		req.Spec.Description = &b.description
 	}
 
-	if b.accessTokenLifetime > 0 {
+	if b.accessTokenLifetime > 0 && b.credentialType == iam.Rs256Jwt {
 		req.Spec.Rs256Jwt = &iam.ServiceaccountcredentialSpecRs256Jwt{
 			AccessTokenLifetime: &b.accessTokenLifetime,
 		}
