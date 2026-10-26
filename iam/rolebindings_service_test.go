@@ -60,7 +60,7 @@ func TestCreateProjectRoleBindingOverwritesName(t *testing.T) {
 	req := &iam.RolebindingRequest{
 		ApiVersion: builderAPIVersion,
 		Kind:       "RoleBinding",
-		Metadata: iam.GlobalProjectMetadataRequest{
+		Metadata: iam.ProjectMetadataRequest{
 			Id: "whatever-the-caller-typed",
 		},
 		Spec: iam.RolebindingSpec{
@@ -76,5 +76,30 @@ func TestCreateProjectRoleBindingOverwritesName(t *testing.T) {
 	metadata, _ := capturedBody["metadata"].(map[string]interface{})
 	if want := "sa-my-project.cicd"; metadata["id"] != want {
 		t.Errorf("expected request body metadata.id to be overwritten to %q, got %v", want, metadata["id"])
+	}
+}
+
+func TestListMyRoleBindings(t *testing.T) {
+	var gotPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"items":[{"metadata":{"id":"u-1","project":"p1"}},{"metadata":{"id":"u-1","organization":"o1"}}]}`))
+	}))
+	defer server.Close()
+
+	restClient, _ := rest.NewClient(rest.Config{BaseURL: server.URL, HTTPClient: server.Client()})
+	client := NewClient(restClient, &mockContextProvider{})
+
+	list, err := client.RoleBindings().ListMyRoleBindings(context.Background())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if want := "/iam/" + apiVersion + "/me/roleBindings"; gotPath != want {
+		t.Errorf("expected path %q, got %q", want, gotPath)
+	}
+	items := *list.Items
+	if len(items) != 2 || *items[0].Metadata.Project != "p1" || *items[1].Metadata.Organization != "o1" {
+		t.Errorf("unexpected items: %+v", items)
 	}
 }

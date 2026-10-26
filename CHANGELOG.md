@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-10-26
+
+### Added
+- **Load Balancer BackendServices**: `BackendServiceBuilder.WithHealthCheckDisableProxyProtocol` omits PROXY headers from health checks while preserving the backend traffic setting.
+
+## [0.10.0] - 2026-10-21
+
+### Breaking Changes
+- **IAM**: the SDK now targets IAM `v1beta2` (v1beta1 is deprecated upstream), which rejects RoleBinding names not derived from the principal; RoleBinding metadata fields now use `ProjectMetadataRequest`/`OrgMetadataRequest` (and their `Patch`/`Response` variants), and `GlobalOrgMetadataRequest`/`RequestPatch`/`Response` are removed
+- **Compute DiskImages**: `Spec.OsArch` is now `Spec.Architecture` and `Spec.DefaultSize` is now `Spec.DefaultDiskSize`, following the API
+- **Types**: generated `*Params` and `*JSONRequestBody` types are renamed after the API's operation IDs (e.g. `ListDisksParams`), and IAM ones from `…IamV1beta1…` to `…IamV1beta2…`; `Error.Debug` is now a `string`
+- **IAM RoleBindings**: `ListMyRoleBindings` returns `AnyScopeListResponse`, so org-scoped bindings carry `metadata.organization`
+- **Compute ComputeProfiles**: `ComputeprofileSpecGpus.LocalDisk` is now `*int32` (nil or 0 means no local disk)
+
+### Added
+- **IAM ServiceAccountCredentials**: `Revoke(ctx, name, reason)`; HMAC-SigV4 credentials via `ServiceAccountCredentialBuilder.WithHMACSigV4()`
+- **KMS** (v1): `client.KMS().Keys()` with CRUD and `Activate`, `Suspend`, `Rotate`, `Trim`, `Import`, `RotateImported`, `AbortDeletion`, `AbortTrimming`
+- **Compute VirtualMachines**: `ConsoleLogs` for the last 1,000 console log lines
+- **Quotas**: `HotswapDiskAttachments` quota
+- **Think**: `Sunset` date on shared models
+
 ## [0.9.3] - 2026-10-16
 
 ### Added
@@ -160,7 +181,7 @@ Public release
 - End-to-end test suite for all major resources
 - Supply chain security documentation
 
-[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.1...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
@@ -172,3 +193,6 @@ Public release
 [0.9.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.9.1
 [0.9.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.9.2
 [0.9.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.9.3
+[0.10.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.0
+
+[0.10.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.1

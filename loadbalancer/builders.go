@@ -117,13 +117,14 @@ func (b *BackendPoolBuilder) Create(ctx context.Context, client *BackendPoolsSer
 
 // BackendServiceBuilder provides a fluent interface for constructing BackendserviceRequest objects.
 type BackendServiceBuilder struct {
-	name            string
-	port            int32
-	backendPoolRef  string
-	proxyProtocol   bool
-	healthCheck     *lbtypes.BackendserviceSpecHealthCheck
-	healthCheckPort int32
-	labels          map[string]string
+	name                            string
+	port                            int32
+	backendPoolRef                  string
+	proxyProtocol                   bool
+	healthCheck                     *lbtypes.BackendserviceSpecHealthCheck
+	healthCheckPort                 int32
+	healthCheckDisableProxyProtocol *bool
+	labels                          map[string]string
 }
 
 // NewBackendServiceBuilder creates a new builder for a BackendService with the given name.
@@ -170,10 +171,10 @@ func (b *BackendServiceBuilder) WithTCPHealthCheck() *BackendServiceBuilder {
 func (b *BackendServiceBuilder) WithHTTPHealthCheck(path string) *BackendServiceBuilder {
 	b.healthCheck = &lbtypes.BackendserviceSpecHealthCheck{
 		Http: &struct {
-			ExpectedStatuses *[]int32                                    `json:"expectedStatuses,omitempty"`
-			Host             *string                                     `json:"host,omitempty"`
+			ExpectedStatuses *[]int32                                         `json:"expectedStatuses,omitempty"`
+			Host             *string                                          `json:"host,omitempty"`
 			Method           *lbtypes.BackendserviceSpecHealthCheckHttpMethod `json:"method,omitempty"`
-			Path             string                                      `json:"path"`
+			Path             string                                           `json:"path"`
 		}{
 			Path: path,
 		},
@@ -186,6 +187,15 @@ func (b *BackendServiceBuilder) WithHTTPHealthCheck(path string) *BackendService
 // and has no effect without one.
 func (b *BackendServiceBuilder) WithHealthCheckPort(port int32) *BackendServiceBuilder {
 	b.healthCheckPort = port
+	return b
+}
+
+// WithHealthCheckDisableProxyProtocol controls whether health checks omit PROXY
+// headers while preserving the backend traffic setting. False restores inheritance.
+// It applies to whichever health check is configured, regardless of call order,
+// and has no effect without a health check.
+func (b *BackendServiceBuilder) WithHealthCheckDisableProxyProtocol(disabled bool) *BackendServiceBuilder {
+	b.healthCheckDisableProxyProtocol = &disabled
 	return b
 }
 
@@ -214,6 +224,10 @@ func (b *BackendServiceBuilder) Build() *lbtypes.BackendserviceRequest {
 	}
 	if b.healthCheck != nil {
 		hc := *b.healthCheck
+		if b.healthCheckDisableProxyProtocol != nil {
+			disabled := *b.healthCheckDisableProxyProtocol
+			hc.DisableProxyProtocol = &disabled
+		}
 		if b.healthCheckPort != 0 {
 			hc.TargetPort = &b.healthCheckPort
 		}
@@ -233,9 +247,9 @@ func (b *BackendServiceBuilder) Create(ctx context.Context, client *BackendServi
 
 // L4RouteBuilder provides a fluent interface for constructing L4routeRequest objects.
 type L4RouteBuilder struct {
-	name                  string
-	backendServiceRef     string
-	labels                map[string]string
+	name              string
+	backendServiceRef string
+	labels            map[string]string
 }
 
 // NewL4RouteBuilder creates a new builder for an L4Route with the given name.

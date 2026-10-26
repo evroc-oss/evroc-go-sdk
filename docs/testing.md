@@ -39,6 +39,7 @@ export EVROC_PROJECT="project-id"
 E2E=1 go test -v -tags=e2e ./compute -timeout 60m
 E2E=1 go test -v -tags=e2e ./storage -timeout 60m
 E2E=1 go test -v -tags=e2e ./networking -timeout 60m
+E2E=1 go test -v -tags=e2e ./kms -timeout 30m
 
 # Single test
 E2E=1 go test -v -tags=e2e ./compute -run TestE2E_Disk_Lifecycle -timeout 60m
@@ -52,6 +53,7 @@ E2E=1 go test -v -tags=e2e ./compute -run TestE2E_Disk_Lifecycle -timeout 60m
 - All test resources are prefixed with `e2e-test-`
 - `TestE2E_CustomDiskImage_Lifecycle` uploads an object over S3; outside production set `E2E_S3_ENDPOINT` to that environment's S3 host (e.g. `s3.<region>.<domain>`)
 - Default timeout is 120 minutes
+- `TestE2E_Key_Lifecycle` cannot purge its key: deletion leaves it `PendingDeletion` for the KMS grace period (7 days by default)
 
 ### Writing E2E Tests
 

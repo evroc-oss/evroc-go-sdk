@@ -161,6 +161,9 @@ type BackendserviceSpecIpProtocolSelection string
 
 // BackendserviceSpecHealthCheck HealthCheck configures active health checking for this BackendService.
 type BackendserviceSpecHealthCheck struct {
+	// DisableProxyProtocol DisableProxyProtocol omits Proxy Protocol headers from health checks while preserving the BackendService setting for traffic.
+	DisableProxyProtocol *bool `json:"disableProxyProtocol,omitempty"`
+
 	// HealthyThreshold HealthyThreshold is the number of consecutive successes before marking an endpoint healthy.
 	HealthyThreshold *int32 `json:"healthyThreshold,omitempty"`
 
@@ -273,9 +276,9 @@ type BaseMetadataResponse struct {
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -557,50 +560,50 @@ type ApiVersion = string
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsParams defines parameters for GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPools.
-type GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsParams struct {
+// ListBackendPoolsParams defines parameters for ListBackendPools.
+type ListBackendPoolsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesParams defines parameters for GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServices.
-type GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesParams struct {
+// ListBackendServicesParams defines parameters for ListBackendServices.
+type ListBackendServicesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesParams defines parameters for GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4Routes.
-type GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesParams struct {
+// ListL4RoutesParams defines parameters for ListL4Routes.
+type ListL4RoutesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersParams defines parameters for GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancers.
-type GetLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersParams struct {
+// ListLoadBalancersParams defines parameters for ListLoadBalancers.
+type ListLoadBalancersParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsJSONRequestBody defines body for PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPools for application/json ContentType.
-type PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsJSONRequestBody = BackendpoolRequest
+// CreateBackendPoolJSONRequestBody defines body for CreateBackendPool for application/json ContentType.
+type CreateBackendPoolJSONRequestBody = BackendpoolRequest
 
-// PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsBackendPoolIDJSONRequestBody defines body for PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsBackendPoolID for application/json ContentType.
-type PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendPoolsBackendPoolIDJSONRequestBody = BackendpoolRequest
+// UpdateBackendPoolJSONRequestBody defines body for UpdateBackendPool for application/json ContentType.
+type UpdateBackendPoolJSONRequestBody = BackendpoolRequest
 
-// PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesJSONRequestBody defines body for PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServices for application/json ContentType.
-type PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesJSONRequestBody = BackendserviceRequest
+// CreateBackendServiceJSONRequestBody defines body for CreateBackendService for application/json ContentType.
+type CreateBackendServiceJSONRequestBody = BackendserviceRequest
 
-// PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesBackendServiceIDJSONRequestBody defines body for PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesBackendServiceID for application/json ContentType.
-type PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameBackendServicesBackendServiceIDJSONRequestBody = BackendserviceRequest
+// UpdateBackendServiceJSONRequestBody defines body for UpdateBackendService for application/json ContentType.
+type UpdateBackendServiceJSONRequestBody = BackendserviceRequest
 
-// PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesJSONRequestBody defines body for PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4Routes for application/json ContentType.
-type PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesJSONRequestBody = L4routeRequest
+// CreateL4RouteJSONRequestBody defines body for CreateL4Route for application/json ContentType.
+type CreateL4RouteJSONRequestBody = L4routeRequest
 
-// PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesL4RouteIDJSONRequestBody defines body for PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesL4RouteID for application/json ContentType.
-type PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameL4RoutesL4RouteIDJSONRequestBody = L4routeRequest
+// UpdateL4RouteJSONRequestBody defines body for UpdateL4Route for application/json ContentType.
+type UpdateL4RouteJSONRequestBody = L4routeRequest
 
-// PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersJSONRequestBody defines body for PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancers for application/json ContentType.
-type PostLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersJSONRequestBody = LoadbalancerRequest
+// CreateLoadBalancerJSONRequestBody defines body for CreateLoadBalancer for application/json ContentType.
+type CreateLoadBalancerJSONRequestBody = LoadbalancerRequest
 
-// PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersLoadBalancerIDJSONRequestBody defines body for PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersLoadBalancerID for application/json ContentType.
-type PatchLoadbalancerV1alpha1ProjectsProjectIDRegionsRegionNameLoadBalancersLoadBalancerIDJSONRequestBody = LoadbalancerRequest
+// UpdateLoadBalancerJSONRequestBody defines body for UpdateLoadBalancer for application/json ContentType.
+type UpdateLoadBalancerJSONRequestBody = LoadbalancerRequest

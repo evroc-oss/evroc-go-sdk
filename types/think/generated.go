@@ -111,9 +111,9 @@ type BaseMetadataResponse struct {
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -381,6 +381,9 @@ type SharedmodelSpec struct {
 
 	// LicenseUrl Link to the full model license, if any.
 	LicenseUrl *string `json:"licenseUrl,omitempty"`
+
+	// Sunset Time at which this model will cease to be served, if set.
+	Sunset *time.Time `json:"sunset,omitempty"`
 }
 
 // SharedmodelSpecCapabilities defines model for SharedmodelSpec.Capabilities.

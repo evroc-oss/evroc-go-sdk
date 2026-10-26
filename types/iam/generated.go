@@ -45,7 +45,8 @@ const (
 
 // Defines values for ServiceaccountcredentialSpecType.
 const (
-	Rs256Jwt ServiceaccountcredentialSpecType = "rs256-jwt"
+	HmacSigv4 ServiceaccountcredentialSpecType = "hmac-sigv4"
+	Rs256Jwt  ServiceaccountcredentialSpecType = "rs256-jwt"
 )
 
 // Defines values for ServiceaccountcredentialStatusConditionsItemStatus.
@@ -54,6 +55,58 @@ const (
 	ServiceaccountcredentialStatusConditionsItemStatusTrue    ServiceaccountcredentialStatusConditionsItemStatus = "True"
 	ServiceaccountcredentialStatusConditionsItemStatusUnknown ServiceaccountcredentialStatusConditionsItemStatus = "Unknown"
 )
+
+// AnyScopeListResponse defines model for AnyScopeListResponse.
+type AnyScopeListResponse struct {
+	Items *[]AnyScopeResponse `json:"items,omitempty"`
+}
+
+// AnyScopeMetadataResponse defines model for AnyScopeMetadataResponse.
+type AnyScopeMetadataResponse struct {
+	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
+	CreationTimestamp time.Time `json:"creationTimestamp"`
+
+	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
+	Generation int64 `json:"generation"`
+
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// Organization Organization associated with the resource, if organization-scoped.
+	Organization *string `json:"organization,omitempty"`
+
+	// Project Project to which this resource belongs, if project-scoped.
+	Project *string `json:"project,omitempty"`
+
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
+	ResourceVersion *string `json:"resourceVersion,omitempty"`
+
+	// Uid System-assigned unique identifier for the resource. Immutable.
+	Uid openapi_types.UUID `json:"uid"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// AnyScopeResponse defines model for AnyScopeResponse.
+type AnyScopeResponse struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for role bindings that can span project and organization scope.
+	// Exactly one of `project` or `organization` will be populated, depending on the binding's scope.
+	Metadata AnyScopeMetadataResponse `json:"metadata"`
+
+	// Spec Desired configuration of the role binding.
+	Spec RolebindingSpec `json:"spec"`
+
+	// Status Observed state of the role binding, set by the system.
+	Status RolebindingStatus `json:"status"`
+}
 
 // AssignRoleRequest Grants one role to one principal, optionally limited to specific resources.
 type AssignRoleRequest struct {
@@ -99,9 +152,9 @@ type CheckAccessResponse struct {
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -133,54 +186,6 @@ type GlobalMetadataResponse struct {
 
 	// Id Unique identifier for the resource within its namespace. Immutable.
 	Id string `json:"id"`
-
-	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
-	ResourceVersion *string `json:"resourceVersion,omitempty"`
-
-	// Uid System-assigned unique identifier for the resource. Immutable.
-	Uid openapi_types.UUID `json:"uid"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// GlobalOrgMetadataRequest defines model for GlobalOrgMetadataRequest.
-type GlobalOrgMetadataRequest struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id string `json:"id"`
-
-	// Organization Organization associated with the resource.
-	Organization *string `json:"organization,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// GlobalOrgMetadataRequestPatch defines model for GlobalOrgMetadataRequestPatch.
-type GlobalOrgMetadataRequestPatch struct {
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id *string `json:"id,omitempty"`
-
-	// Organization Organization associated with the resource.
-	Organization *string `json:"organization,omitempty"`
-
-	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
-	UserLabels *UserLabels `json:"userLabels,omitempty"`
-}
-
-// GlobalOrgMetadataResponse defines model for GlobalOrgMetadataResponse.
-type GlobalOrgMetadataResponse struct {
-	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
-	CreationTimestamp time.Time `json:"creationTimestamp"`
-
-	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
-	Generation int64 `json:"generation"`
-
-	// Id Unique identifier for the resource within its namespace. Immutable.
-	Id string `json:"id"`
-
-	// Organization Organization associated with the resource.
-	Organization *string `json:"organization,omitempty"`
 
 	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
 	ResourceVersion *string `json:"resourceVersion,omitempty"`
@@ -240,9 +245,75 @@ type GlobalProjectMetadataResponse struct {
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
+// IdMetadataRequest Standard metadata for a RoleBinding.
+type IdMetadataRequest struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// IdMetadataRequestPatch Standard metadata for a RoleBinding, used for PATCH operations.
+type IdMetadataRequestPatch struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id *string `json:"id,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
 // OrgListResponse defines model for OrgListResponse.
 type OrgListResponse struct {
 	Items *[]OrgResponse `json:"items,omitempty"`
+}
+
+// OrgMetadataRequest defines model for OrgMetadataRequest.
+type OrgMetadataRequest struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// Organization Organization associated with the resource.
+	Organization *string `json:"organization,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// OrgMetadataRequestPatch defines model for OrgMetadataRequestPatch.
+type OrgMetadataRequestPatch struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id *string `json:"id,omitempty"`
+
+	// Organization Organization associated with the resource.
+	Organization *string `json:"organization,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// OrgMetadataResponse defines model for OrgMetadataResponse.
+type OrgMetadataResponse struct {
+	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
+	CreationTimestamp time.Time `json:"creationTimestamp"`
+
+	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
+	Generation int64 `json:"generation"`
+
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// Organization Organization associated with the resource.
+	Organization *string `json:"organization,omitempty"`
+
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
+	ResourceVersion *string `json:"resourceVersion,omitempty"`
+
+	// Uid System-assigned unique identifier for the resource. Immutable.
+	Uid openapi_types.UUID `json:"uid"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
 
 // OrgPatchRequest Partial role binding used with JSON Merge Patch. Only the supplied fields are changed.
@@ -254,8 +325,8 @@ type OrgPatchRequest struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind *Kind `json:"kind,omitempty"`
 
-	// Metadata Standard metadata for global, organization-scoped resource  used for PATCH operations.
-	Metadata *GlobalOrgMetadataRequestPatch `json:"metadata,omitempty"`
+	// Metadata Standard metadata for an organization-scoped RoleBinding, used for PATCH operations.
+	Metadata *OrgMetadataRequestPatch `json:"metadata,omitempty"`
 
 	// Spec Desired configuration of the role binding.
 	Spec *RolebindingSpec `json:"spec,omitempty"`
@@ -270,8 +341,8 @@ type OrgRequest struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind Kind `json:"kind"`
 
-	// Metadata Standard metadata for global, organization-scoped resource
-	Metadata GlobalOrgMetadataRequest `json:"metadata"`
+	// Metadata Standard metadata for an organization-scoped RoleBinding.
+	Metadata OrgMetadataRequest `json:"metadata"`
 
 	// Spec Desired configuration of the role binding.
 	Spec RolebindingSpec `json:"spec"`
@@ -286,8 +357,8 @@ type OrgResponse struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind Kind `json:"kind"`
 
-	// Metadata Standard metadata for global organization-scoped resources.
-	Metadata GlobalOrgMetadataResponse `json:"metadata"`
+	// Metadata Standard metadata for an organization-scoped RoleBinding response.
+	Metadata OrgMetadataResponse `json:"metadata"`
 
 	// Spec Desired configuration of the role binding.
 	Spec RolebindingSpec `json:"spec"`
@@ -484,6 +555,54 @@ type ProjectList struct {
 	Items *[]Project `json:"items,omitempty"`
 }
 
+// ProjectMetadataRequest defines model for ProjectMetadataRequest.
+type ProjectMetadataRequest struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// Project Project to which this resource belongs.
+	Project *string `json:"project,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// ProjectMetadataRequestPatch defines model for ProjectMetadataRequestPatch.
+type ProjectMetadataRequestPatch struct {
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id *string `json:"id,omitempty"`
+
+	// Project Project to which this resource belongs.
+	Project *string `json:"project,omitempty"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
+// ProjectMetadataResponse defines model for ProjectMetadataResponse.
+type ProjectMetadataResponse struct {
+	// CreationTimestamp Timestamp representing when the resource was created. Set by the system and immutable.
+	CreationTimestamp time.Time `json:"creationTimestamp"`
+
+	// Generation Sequential number representing the desired state of the resource. Incremented by the system whenever the spec is updated by a client. Mirrors Kubernetes’ `metadata.generation`.
+	Generation int64 `json:"generation"`
+
+	// Id Derived from spec.principal — "u-{userId}" for a user, or "sa-{projectId}.{serviceAccountId}" for a service account. The id must match this format; a mismatch is rejected by the server.
+	Id string `json:"id"`
+
+	// Project Project to which this resource belongs.
+	Project *string `json:"project,omitempty"`
+
+	// ResourceVersion String that identifies the internal version of this object that can be used by clients to determine when objects have changed. Any reconciliation, or system-driven status change, can change the resourceVersion, not only a change of spec.
+	ResourceVersion *string `json:"resourceVersion,omitempty"`
+
+	// Uid System-assigned unique identifier for the resource. Immutable.
+	Uid openapi_types.UUID `json:"uid"`
+
+	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
+	UserLabels *UserLabels `json:"userLabels,omitempty"`
+}
+
 // ProjectPatchRequest defines model for ProjectPatchRequest.
 type ProjectPatchRequest struct {
 	// ApiVersion Identifies the version of the API schema used for this resource.
@@ -582,7 +701,7 @@ type RevokeRoleRequest struct {
 
 // RoleEntry A granted role and the resources it applies to.
 type RoleEntry struct {
-	// Name The role to grant, as a role FQID. Use `GET /iam/v1beta1/roles` to list the available roles and the permissions each one grants.
+	// Name The role to grant, as a role FQID. Use `GET /iam/v1beta2/roles` to list the available roles and the permissions each one grants.
 	Name string `json:"name"`
 
 	// Resources Optional list of resources the role is limited to. Omit to grant the role on
@@ -608,6 +727,9 @@ type RoleInfo struct {
 	// Permissions The permissions the role grants, in `service.resource.action` form.
 	Permissions []string `json:"permissions"`
 
+	// Resources The resource kinds, in `service.resource` form, the role can be limited to in a role binding. An empty list means the role applies to the whole scope.
+	Resources []string `json:"resources"`
+
 	// Scope The scope at which the role can be granted.
 	Scope RoleInfoScope `json:"scope"`
 }
@@ -629,8 +751,8 @@ type Rolebinding struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind Kind `json:"kind"`
 
-	// Metadata Standard metadata for global project-scoped resources.
-	Metadata GlobalProjectMetadataResponse `json:"metadata"`
+	// Metadata Standard metadata for a project-scoped RoleBinding response.
+	Metadata ProjectMetadataResponse `json:"metadata"`
 
 	// Spec Desired configuration of the role binding.
 	Spec RolebindingSpec `json:"spec"`
@@ -653,8 +775,8 @@ type RolebindingPatchRequest struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind *Kind `json:"kind,omitempty"`
 
-	// Metadata Standard metadata for global, project-scoped resource  used for PATCH operations.
-	Metadata *GlobalProjectMetadataRequestPatch `json:"metadata,omitempty"`
+	// Metadata Standard metadata for a project-scoped RoleBinding, used for PATCH operations.
+	Metadata *ProjectMetadataRequestPatch `json:"metadata,omitempty"`
 
 	// Spec Desired configuration of the role binding.
 	Spec *RolebindingSpec `json:"spec,omitempty"`
@@ -669,8 +791,8 @@ type RolebindingRequest struct {
 	// Kind Specifies the type of resource this object represents.
 	Kind Kind `json:"kind"`
 
-	// Metadata Standard metadata for global, project-scoped resource
-	Metadata GlobalProjectMetadataRequest `json:"metadata"`
+	// Metadata Standard metadata for a project-scoped RoleBinding.
+	Metadata ProjectMetadataRequest `json:"metadata"`
 
 	// Spec Desired configuration of the role binding.
 	Spec RolebindingSpec `json:"spec"`
@@ -844,7 +966,9 @@ type Serviceaccountcredential struct {
 
 	// Metadata Standard metadata for global project-scoped resources.
 	Metadata GlobalProjectMetadataResponse `json:"metadata"`
-	Spec     ServiceaccountcredentialSpec  `json:"spec"`
+
+	// Spec ServiceAccountCredentialSpec defines the desired state of ServiceAccountCredential.
+	Spec ServiceaccountcredentialSpec `json:"spec"`
 
 	// Status ServiceAccountCredentialStatus defines the observed state of ServiceAccountCredential.
 	Status ServiceaccountcredentialStatus `json:"status"`
@@ -866,10 +990,12 @@ type ServiceaccountcredentialRequest struct {
 
 	// Metadata Standard metadata for global, project-scoped resource
 	Metadata GlobalProjectMetadataRequest `json:"metadata"`
-	Spec     ServiceaccountcredentialSpec `json:"spec"`
+
+	// Spec ServiceAccountCredentialSpec defines the desired state of ServiceAccountCredential.
+	Spec ServiceaccountcredentialSpec `json:"spec"`
 }
 
-// ServiceaccountcredentialSpec defines model for ServiceaccountcredentialSpec.
+// ServiceaccountcredentialSpec ServiceAccountCredentialSpec defines the desired state of ServiceAccountCredential.
 type ServiceaccountcredentialSpec struct {
 	// AccountRef AccountRef is the reference to the parent ServiceAccount.
 	AccountRef ServiceaccountcredentialSpecAccountRef `json:"accountRef"`
@@ -879,6 +1005,9 @@ type ServiceaccountcredentialSpec struct {
 
 	// ExpiresAt ExpiresAt is the timestamp when the credential expires.
 	ExpiresAt time.Time `json:"expiresAt"`
+
+	// HmacSigv4 HmacSigv4 contains the HMAC-based credential details. This field is required when type is "hmac-sigv4".
+	HmacSigv4 *ServiceaccountcredentialSpecHmacSigv4 `json:"hmacSigv4,omitempty"`
 
 	// RevocationRequest RevocationRequest is used to request revocation of this credential.
 	RevocationRequest *ServiceaccountcredentialSpecRevocationRequest `json:"revocationRequest,omitempty"`
@@ -897,6 +1026,12 @@ type ServiceaccountcredentialSpecType string
 type ServiceaccountcredentialSpecAccountRef struct {
 	// Fqid FQID is the fully qualified identifier of the ServiceAccount. Example: /iam/projects/abcd/serviceAccounts/sa-cicd-123
 	Fqid string `json:"fqid"`
+}
+
+// ServiceaccountcredentialSpecHmacSigv4 HmacSigv4 contains the HMAC-based credential details. This field is required when type is "hmac-sigv4".
+type ServiceaccountcredentialSpecHmacSigv4 struct {
+	// AccessKeyId AccessKeyID is the access key identifier.
+	AccessKeyId string `json:"accessKeyId"`
 }
 
 // ServiceaccountcredentialSpecRevocationRequest RevocationRequest is used to request revocation of this credential.
@@ -919,11 +1054,16 @@ type ServiceaccountcredentialStatus struct {
 	// Conditions Conditions represents the state of the ServiceAccountCredential over time. Each condition follows the Kubernetes API conventions for a condition.
 	Conditions *[]ServiceaccountcredentialStatusConditionsItem `json:"conditions,omitempty"`
 
-	// PrivateKeyJwk PrivateKeyJWK contains the private key components as a base64-encoded JSON string. This field is only populated in the CreateCredential API response and is not stored.
+	// PrivateKeyJwk PrivateKeyJWK contains the base64-encoded JSON of the private key JWK.
+	// This field is only populated in the CreateCredential API response and is not stored.
 	PrivateKeyJwk *string `json:"privateKeyJwk,omitempty"`
 
 	// RevokedAt RevokedAt is the timestamp when the credential has been revoked.
 	RevokedAt *time.Time `json:"revokedAt,omitempty"`
+
+	// SecretAccessKey SecretAccessKey is the secret access key. Used only for HMAC keys. It is never persisted and
+	// only returned once in the CreateCredential API response.
+	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
 }
 
 // ServiceaccountcredentialStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
@@ -993,77 +1133,77 @@ type PatchSpec struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
-// GetIamV1beta1OrganizationsOrganizationIDRoleBindingsParams defines parameters for GetIamV1beta1OrganizationsOrganizationIDRoleBindings.
-type GetIamV1beta1OrganizationsOrganizationIDRoleBindingsParams struct {
+// GetIamV1beta2OrganizationsOrganizationIDRoleBindingsParams defines parameters for GetIamV1beta2OrganizationsOrganizationIDRoleBindings.
+type GetIamV1beta2OrganizationsOrganizationIDRoleBindingsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetIamV1beta1ProjectsProjectIDRoleBindingsParams defines parameters for GetIamV1beta1ProjectsProjectIDRoleBindings.
-type GetIamV1beta1ProjectsProjectIDRoleBindingsParams struct {
+// GetIamV1beta2ProjectsProjectIDRoleBindingsParams defines parameters for GetIamV1beta2ProjectsProjectIDRoleBindings.
+type GetIamV1beta2ProjectsProjectIDRoleBindingsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetIamV1beta1ProjectsProjectIDServiceAccountsParams defines parameters for GetIamV1beta1ProjectsProjectIDServiceAccounts.
-type GetIamV1beta1ProjectsProjectIDServiceAccountsParams struct {
+// GetIamV1beta2ProjectsProjectIDServiceAccountsParams defines parameters for GetIamV1beta2ProjectsProjectIDServiceAccounts.
+type GetIamV1beta2ProjectsProjectIDServiceAccountsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams defines parameters for GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials.
-type GetIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams struct {
+// GetIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams defines parameters for GetIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials.
+type GetIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostIamV1beta1CheckAccessJSONRequestBody defines body for PostIamV1beta1CheckAccess for application/json ContentType.
-type PostIamV1beta1CheckAccessJSONRequestBody = CheckAccessRequest
+// PostIamV1beta2CheckAccessJSONRequestBody defines body for PostIamV1beta2CheckAccess for application/json ContentType.
+type PostIamV1beta2CheckAccessJSONRequestBody = CheckAccessRequest
 
-// PatchIamV1beta1OrganizationsOrganizationIDJSONRequestBody defines body for PatchIamV1beta1OrganizationsOrganizationID for application/json ContentType.
-type PatchIamV1beta1OrganizationsOrganizationIDJSONRequestBody = OrganizationPatchRequest
+// PatchIamV1beta2OrganizationsOrganizationIDJSONRequestBody defines body for PatchIamV1beta2OrganizationsOrganizationID for application/json ContentType.
+type PatchIamV1beta2OrganizationsOrganizationIDJSONRequestBody = OrganizationPatchRequest
 
-// PostIamV1beta1OrganizationsOrganizationIDRoleBindingsJSONRequestBody defines body for PostIamV1beta1OrganizationsOrganizationIDRoleBindings for application/json ContentType.
-type PostIamV1beta1OrganizationsOrganizationIDRoleBindingsJSONRequestBody = OrgRequest
+// PostIamV1beta2OrganizationsOrganizationIDRoleBindingsJSONRequestBody defines body for PostIamV1beta2OrganizationsOrganizationIDRoleBindings for application/json ContentType.
+type PostIamV1beta2OrganizationsOrganizationIDRoleBindingsJSONRequestBody = OrgRequest
 
-// PostIamV1beta1OrganizationsOrganizationIDRoleBindingsAssignJSONRequestBody defines body for PostIamV1beta1OrganizationsOrganizationIDRoleBindingsAssign for application/json ContentType.
-type PostIamV1beta1OrganizationsOrganizationIDRoleBindingsAssignJSONRequestBody = AssignRoleRequest
+// PostIamV1beta2OrganizationsOrganizationIDRoleBindingsAssignJSONRequestBody defines body for PostIamV1beta2OrganizationsOrganizationIDRoleBindingsAssign for application/json ContentType.
+type PostIamV1beta2OrganizationsOrganizationIDRoleBindingsAssignJSONRequestBody = AssignRoleRequest
 
-// PostIamV1beta1OrganizationsOrganizationIDRoleBindingsRevokeJSONRequestBody defines body for PostIamV1beta1OrganizationsOrganizationIDRoleBindingsRevoke for application/json ContentType.
-type PostIamV1beta1OrganizationsOrganizationIDRoleBindingsRevokeJSONRequestBody = RevokeRoleRequest
+// PostIamV1beta2OrganizationsOrganizationIDRoleBindingsRevokeJSONRequestBody defines body for PostIamV1beta2OrganizationsOrganizationIDRoleBindingsRevoke for application/json ContentType.
+type PostIamV1beta2OrganizationsOrganizationIDRoleBindingsRevokeJSONRequestBody = RevokeRoleRequest
 
-// PatchIamV1beta1OrganizationsOrganizationIDRoleBindingsRoleBindingIDJSONRequestBody defines body for PatchIamV1beta1OrganizationsOrganizationIDRoleBindingsRoleBindingID for application/json ContentType.
-type PatchIamV1beta1OrganizationsOrganizationIDRoleBindingsRoleBindingIDJSONRequestBody = OrgPatchRequest
+// PatchIamV1beta2OrganizationsOrganizationIDRoleBindingsRoleBindingIDJSONRequestBody defines body for PatchIamV1beta2OrganizationsOrganizationIDRoleBindingsRoleBindingID for application/json ContentType.
+type PatchIamV1beta2OrganizationsOrganizationIDRoleBindingsRoleBindingIDJSONRequestBody = OrgPatchRequest
 
-// PostIamV1beta1ProjectsJSONRequestBody defines body for PostIamV1beta1Projects for application/json ContentType.
-type PostIamV1beta1ProjectsJSONRequestBody = ProjectRequest
+// PostIamV1beta2ProjectsJSONRequestBody defines body for PostIamV1beta2Projects for application/json ContentType.
+type PostIamV1beta2ProjectsJSONRequestBody = ProjectRequest
 
-// PatchIamV1beta1ProjectsProjectIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDJSONRequestBody = ProjectPatchRequest
+// PatchIamV1beta2ProjectsProjectIDJSONRequestBody defines body for PatchIamV1beta2ProjectsProjectID for application/json ContentType.
+type PatchIamV1beta2ProjectsProjectIDJSONRequestBody = ProjectPatchRequest
 
-// PostIamV1beta1ProjectsProjectIDRoleBindingsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDRoleBindings for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDRoleBindingsJSONRequestBody = RolebindingRequest
+// PostIamV1beta2ProjectsProjectIDRoleBindingsJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDRoleBindings for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDRoleBindingsJSONRequestBody = RolebindingRequest
 
-// PostIamV1beta1ProjectsProjectIDRoleBindingsAssignJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDRoleBindingsAssign for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDRoleBindingsAssignJSONRequestBody = AssignRoleRequest
+// PostIamV1beta2ProjectsProjectIDRoleBindingsAssignJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDRoleBindingsAssign for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDRoleBindingsAssignJSONRequestBody = AssignRoleRequest
 
-// PostIamV1beta1ProjectsProjectIDRoleBindingsRevokeJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDRoleBindingsRevoke for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDRoleBindingsRevokeJSONRequestBody = RevokeRoleRequest
+// PostIamV1beta2ProjectsProjectIDRoleBindingsRevokeJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDRoleBindingsRevoke for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDRoleBindingsRevokeJSONRequestBody = RevokeRoleRequest
 
-// PatchIamV1beta1ProjectsProjectIDRoleBindingsRoleBindingIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDRoleBindingsRoleBindingID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDRoleBindingsRoleBindingIDJSONRequestBody = RolebindingPatchRequest
+// PatchIamV1beta2ProjectsProjectIDRoleBindingsRoleBindingIDJSONRequestBody defines body for PatchIamV1beta2ProjectsProjectIDRoleBindingsRoleBindingID for application/json ContentType.
+type PatchIamV1beta2ProjectsProjectIDRoleBindingsRoleBindingIDJSONRequestBody = RolebindingPatchRequest
 
-// PostIamV1beta1ProjectsProjectIDServiceAccountsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccounts for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDServiceAccountsJSONRequestBody = ServiceaccountRequest
+// PostIamV1beta2ProjectsProjectIDServiceAccountsJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDServiceAccounts for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDServiceAccountsJSONRequestBody = ServiceaccountRequest
 
-// PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody defines body for PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountID for application/json ContentType.
-type PatchIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody = ServiceaccountPatchRequest
+// PatchIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody defines body for PatchIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountID for application/json ContentType.
+type PatchIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDJSONRequestBody = ServiceaccountPatchRequest
 
-// PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody = ServiceaccountcredentialRequest
+// PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentials for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsJSONRequestBody = ServiceaccountcredentialRequest
 
-// PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody defines body for PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevoke for application/json ContentType.
-type PostIamV1beta1ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody = RevokeRequest
+// PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody defines body for PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevoke for application/json ContentType.
+type PostIamV1beta2ProjectsProjectIDServiceAccountsServiceAccountIDServiceAccountCredentialsCredentialIDRevokeJSONRequestBody = RevokeRequest
 
-// PostIamV1beta1TestPermissionsJSONRequestBody defines body for PostIamV1beta1TestPermissions for application/json ContentType.
-type PostIamV1beta1TestPermissionsJSONRequestBody = TestPermissionsRequest
+// PostIamV1beta2TestPermissionsJSONRequestBody defines body for PostIamV1beta2TestPermissions for application/json ContentType.
+type PostIamV1beta2TestPermissionsJSONRequestBody = TestPermissionsRequest

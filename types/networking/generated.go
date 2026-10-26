@@ -94,9 +94,9 @@ type BaseMetadataResponse struct {
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -675,50 +675,50 @@ type ApiVersion = string
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPs.
-type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsParams struct {
+// ListPublicIPsParams defines parameters for ListPublicIPs.
+type ListPublicIPsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroups.
-type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsParams struct {
+// ListSecurityGroupsParams defines parameters for ListSecurityGroups.
+type ListSecurityGroupsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnets.
-type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsParams struct {
+// ListSubnetsParams defines parameters for ListSubnets.
+type ListSubnetsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams defines parameters for GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateClouds.
-type GetNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsParams struct {
+// ListVirtualPrivateCloudsParams defines parameters for ListVirtualPrivateClouds.
+type ListVirtualPrivateCloudsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPs for application/json ContentType.
-type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsJSONRequestBody = PublicIPRequest
+// CreatePublicIPJSONRequestBody defines body for CreatePublicIP for application/json ContentType.
+type CreatePublicIPJSONRequestBody = PublicIPRequest
 
-// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPID for application/json ContentType.
-type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNamePublicIPsPublicIPIDJSONRequestBody = PublicIPRequest
+// UpdatePublicIPJSONRequestBody defines body for UpdatePublicIP for application/json ContentType.
+type UpdatePublicIPJSONRequestBody = PublicIPRequest
 
-// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroups for application/json ContentType.
-type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsJSONRequestBody = SecurityGroupRequest
+// CreateSecurityGroupJSONRequestBody defines body for CreateSecurityGroup for application/json ContentType.
+type CreateSecurityGroupJSONRequestBody = SecurityGroupRequest
 
-// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupID for application/json ContentType.
-type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSecurityGroupsSecurityGroupIDJSONRequestBody = SecurityGroupRequest
+// UpdateSecurityGroupJSONRequestBody defines body for UpdateSecurityGroup for application/json ContentType.
+type UpdateSecurityGroupJSONRequestBody = SecurityGroupRequest
 
-// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnets for application/json ContentType.
-type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsJSONRequestBody = SubnetRequest
+// CreateSubnetJSONRequestBody defines body for CreateSubnet for application/json ContentType.
+type CreateSubnetJSONRequestBody = SubnetRequest
 
-// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetID for application/json ContentType.
-type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameSubnetsSubnetIDJSONRequestBody = SubnetRequest
+// UpdateSubnetJSONRequestBody defines body for UpdateSubnet for application/json ContentType.
+type UpdateSubnetJSONRequestBody = SubnetRequest
 
-// PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsJSONRequestBody defines body for PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateClouds for application/json ContentType.
-type PostNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsJSONRequestBody = VirtualPrivateCloudRequest
+// CreateVirtualPrivateCloudJSONRequestBody defines body for CreateVirtualPrivateCloud for application/json ContentType.
+type CreateVirtualPrivateCloudJSONRequestBody = VirtualPrivateCloudRequest
 
-// PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudIDJSONRequestBody defines body for PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudID for application/json ContentType.
-type PatchNetworkingV1beta2ProjectsProjectIDRegionsRegionNameVirtualPrivateCloudsVirtualPrivateCloudIDJSONRequestBody = VirtualPrivateCloudRequest
+// UpdateVirtualPrivateCloudJSONRequestBody defines body for UpdateVirtualPrivateCloud for application/json ContentType.
+type UpdateVirtualPrivateCloudJSONRequestBody = VirtualPrivateCloudRequest

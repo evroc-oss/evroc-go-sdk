@@ -67,19 +67,18 @@ const (
 	Permanent DiskStatusDiskUsageItemUseKind = "permanent"
 )
 
-// Defines values for DiskimageSpecOsArch.
+// Defines values for DiskimageSpecArchitecture.
 const (
-	Amd64 DiskimageSpecOsArch = "amd64"
-	Arm64 DiskimageSpecOsArch = "arm64"
-	Empty DiskimageSpecOsArch = ""
+	Amd64 DiskimageSpecArchitecture = "amd64"
+	Arm64 DiskimageSpecArchitecture = "arm64"
 )
 
-// Defines values for DiskimageSpecDefaultSizeUnit.
+// Defines values for DiskimageSpecDefaultDiskSizeUnit.
 const (
-	DiskimageSpecDefaultSizeUnitGB DiskimageSpecDefaultSizeUnit = "GB"
-	DiskimageSpecDefaultSizeUnitKB DiskimageSpecDefaultSizeUnit = "KB"
-	DiskimageSpecDefaultSizeUnitMB DiskimageSpecDefaultSizeUnit = "MB"
-	DiskimageSpecDefaultSizeUnitTB DiskimageSpecDefaultSizeUnit = "TB"
+	DiskimageSpecDefaultDiskSizeUnitGB DiskimageSpecDefaultDiskSizeUnit = "GB"
+	DiskimageSpecDefaultDiskSizeUnitKB DiskimageSpecDefaultDiskSizeUnit = "KB"
+	DiskimageSpecDefaultDiskSizeUnitMB DiskimageSpecDefaultDiskSizeUnit = "MB"
+	DiskimageSpecDefaultDiskSizeUnitTB DiskimageSpecDefaultDiskSizeUnit = "TB"
 )
 
 // Defines values for DiskimageStatusConditionsItemStatus.
@@ -192,8 +191,8 @@ type ComputeprofileSpec struct {
 // ComputeprofileSpecGpus The model and quantity of GPUs, as well as details of other GPU-related resources. If empty,
 // no GPUs are attached to the VM.
 type ComputeprofileSpecGpus struct {
-	// LocalDisk The size of the local disk created automatically for this GPU VM, in GB.
-	LocalDisk int32 `json:"localDisk"`
+	// LocalDisk The size of the local disk created automatically for this GPU VM, in GB. '0' or empty means no local disk.
+	LocalDisk *int32 `json:"localDisk,omitempty"`
 
 	// Model The model of GPUs.
 	Model string `json:"model"`
@@ -328,18 +327,8 @@ type DiskSpecPlacement struct {
 // DiskSpecSource Information about how to initially create the disk
 // All fields under 'source' are immutable.
 type DiskSpecSource struct {
-	// DiskImageRef The reference to the DiskImage to use as the OS image for this disk. This can be any of:
-	// '/compute/global/diskImages/evroc/ubuntu-minimal.24-04.1',
-	// '/compute/global/diskImages/evroc/ubuntu.24-04.1',
-	// '/compute/global/diskImages/evroc/ubuntu.22-04.1',
-	// '/compute/global/diskImages/evroc/rocky.10-1.1',
-	// '/compute/global/diskImages/evroc/rocky.9-6.1',
-	// '/compute/global/diskImages/evroc/rocky.8-10.1',
-	// '/compute/global/diskImages/evroc/opensuse.15-6.1',
-	// '/compute/global/diskImages/evroc/opensuse.15-5.1',
-	// '/compute/global/diskImages/evroc/sles.15-6.1',
-	// '/compute/global/diskImages/evroc/sles.15-5.1'
-	// '/compute/global/diskImages/evroc/sl-micro.6-1.1'
+	// DiskImageRef The reference to the DiskImage to use as the OS image for this disk.
+	// Run `evroc compute diskimage list` or query the DiskImages API for the available options.
 	DiskImageRef *string `json:"diskImageRef,omitempty"`
 
 	// SnapshotRef The reference to the Snapshot from which to create the disk.
@@ -350,7 +339,7 @@ type DiskSpecSource struct {
 	//   - `blank`
 	//   - `image`
 	//   - `snapshot`
-	// If `blank`, then no other fields are allowed under `spec.source`, AND `spec.size` is manadatory, and an empty disk will be created of the requested size.
+	// If `blank`, then no other fields are allowed under `spec.source`, AND `spec.size` is mandatory, and an empty disk will be created of the requested size.
 	// If `image`, then spec.source.diskImageRef is mandatory, AND spec.source.snapshotRef is not allowed AND `spec.size` is optional, and if no size is specified, then the default size specified in the diskImage is used, and a disk will be created from an image specified.
 	// If `snapshot`, then spec.source.snapshotRef is mandatory AND spec.source.diskImageRef is not allowed AND `spec.size` is optional, and if no size is specified, then the restore size specified on the snapshot is used and a disk will be created from the snapshot specified.
 	Type DiskSpecSourceType `json:"type"`
@@ -362,7 +351,7 @@ type DiskSpecSource struct {
 //   - `image`
 //   - `snapshot`
 //
-// If `blank`, then no other fields are allowed under `spec.source`, AND `spec.size` is manadatory, and an empty disk will be created of the requested size.
+// If `blank`, then no other fields are allowed under `spec.source`, AND `spec.size` is mandatory, and an empty disk will be created of the requested size.
 // If `image`, then spec.source.diskImageRef is mandatory, AND spec.source.snapshotRef is not allowed AND `spec.size` is optional, and if no size is specified, then the default size specified in the diskImage is used, and a disk will be created from an image specified.
 // If `snapshot`, then spec.source.snapshotRef is mandatory AND spec.source.diskImageRef is not allowed AND `spec.size` is optional, and if no size is specified, then the restore size specified on the snapshot is used and a disk will be created from the snapshot specified.
 type DiskSpecSourceType string
@@ -470,28 +459,29 @@ type DiskimageList struct {
 
 // DiskimageSpec defines model for DiskimageSpec.
 type DiskimageSpec struct {
-	// DefaultSize The default size of the disk if Disk does not specify one.
-	DefaultSize DiskimageSpecDefaultSize `json:"defaultSize"`
+	Architecture DiskimageSpecArchitecture `json:"architecture"`
+
+	// DefaultDiskSize The default size of the disk if Disk does not specify one.
+	DefaultDiskSize DiskimageSpecDefaultDiskSize `json:"defaultDiskSize"`
 
 	// GpuAffinities The models of GPU this disk image is for. All disk images can be used for CPU VMs.
-	GpuAffinities *[]string            `json:"gpuAffinities,omitempty"`
-	OsArch        *DiskimageSpecOsArch `json:"osArch,omitempty"`
-	OsImage       string               `json:"osImage"`
-	OsVersion     string               `json:"osVersion"`
-	Version       int32                `json:"version"`
+	GpuAffinities *[]string `json:"gpuAffinities,omitempty"`
+	OsImage       string    `json:"osImage"`
+	OsVersion     string    `json:"osVersion"`
+	Version       int32     `json:"version"`
 }
 
-// DiskimageSpecOsArch defines model for DiskimageSpec.OsArch.
-type DiskimageSpecOsArch string
+// DiskimageSpecArchitecture defines model for DiskimageSpec.Architecture.
+type DiskimageSpecArchitecture string
 
-// DiskimageSpecDefaultSize The default size of the disk if Disk does not specify one.
-type DiskimageSpecDefaultSize struct {
-	Amount int32                        `json:"amount"`
-	Unit   DiskimageSpecDefaultSizeUnit `json:"unit"`
+// DiskimageSpecDefaultDiskSize The default size of the disk if Disk does not specify one.
+type DiskimageSpecDefaultDiskSize struct {
+	Amount int32                            `json:"amount"`
+	Unit   DiskimageSpecDefaultDiskSizeUnit `json:"unit"`
 }
 
-// DiskimageSpecDefaultSizeUnit defines model for DiskimageSpecDefaultSize.Unit.
-type DiskimageSpecDefaultSizeUnit string
+// DiskimageSpecDefaultDiskSizeUnit defines model for DiskimageSpecDefaultDiskSize.Unit.
+type DiskimageSpecDefaultDiskSizeUnit string
 
 // DiskimageStatus defines model for DiskimageStatus.
 type DiskimageStatus struct {
@@ -536,9 +526,9 @@ type DiskimageStatusConditionsItemStatus string
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
-	Debug *string `json:"debug,omitempty"`
+	Debug string `json:"debug"`
 
-	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden.
+	// Reason Stable, textual error code. This MUST be used by clients for programmatic handling. Examples include: FieldValueInvalid, Unauthorized, Forbidden, InsufficientQuota.
 	Reason string `json:"reason"`
 }
 
@@ -655,6 +645,12 @@ type HotswapDiskAttachmentStatusConditionsItem struct {
 
 // HotswapDiskAttachmentStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
 type HotswapDiskAttachmentStatusConditionsItemStatus string
+
+// LogsConsole The VirtualMachine's console logs.
+type LogsConsole struct {
+	// Logs The last 1,000 lines of the VirtualMachine's console logs.
+	Logs []string `json:"logs"`
+}
 
 // PlacementGroup defines model for PlacementGroup.
 type PlacementGroup struct {
@@ -964,7 +960,8 @@ type VirtualMachineSpec struct {
 	// architecture that this VM will use. Profile IDs generally have the form <series>.<size> where
 	// series is one of, but not limited to 'a1a', 'c1a', or 'm1a' and size is one of 'xs', 's', 'm', 'l', 'xl', or
 	// '2xl'.
-	// See the documentation for an authoritative list of supported profiles.
+	// Run `evroc compute computeprofile list` or query the ComputeProfiles API for the authoritative
+	// list of supported profiles.
 	ComputeProfileRef string `json:"computeProfileRef"`
 
 	// Disks The VM's Disks.
@@ -1014,7 +1011,8 @@ type VirtualMachineSpecNetworking struct {
 	// StackType The stack type of this VM.  Can either be "dual-stack", meaning that both IPv4 and IPv6
 	// addresses are provisioned, or "ipv6-only".  The Subnet must support the chosen stack.
 	// The stack type of the Subnet will be used if it is not specified on the VM.
-	// During the migration period, "ipv4-only" is also allowed.
+	// "ipv4-only" is deprecated and cannot be set on new VMs. Existing IPv4-only VMs are
+	// supported but should be migrated to dual-stack or ipv6-only.
 	StackType *VirtualMachineSpecNetworkingStackType `json:"stackType,omitempty"`
 
 	// SubnetRef The Subnet that this VM should be attached to.  The VM must be attached to a Subnet.
@@ -1024,7 +1022,8 @@ type VirtualMachineSpecNetworking struct {
 // VirtualMachineSpecNetworkingStackType The stack type of this VM.  Can either be "dual-stack", meaning that both IPv4 and IPv6
 // addresses are provisioned, or "ipv6-only".  The Subnet must support the chosen stack.
 // The stack type of the Subnet will be used if it is not specified on the VM.
-// During the migration period, "ipv4-only" is also allowed.
+// "ipv4-only" is deprecated and cannot be set on new VMs. Existing IPv4-only VMs are
+// supported but should be migrated to dual-stack or ipv6-only.
 type VirtualMachineSpecNetworkingStackType string
 
 // VirtualMachineSpecNetworkingStatic Settings related to static public IPv4 addressing.
@@ -1207,6 +1206,21 @@ type VirtualMachineStatusPlacement struct {
 	Zone *string `json:"zone,omitempty"`
 }
 
+// VncConsole A token and gateway URL that allow the client to establish a tunnel to the VirtualMachine's VNC console.
+type VncConsole struct {
+	// ExpiresAt When the token expires.
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// LifetimeSeconds The token's validity window in seconds.
+	LifetimeSeconds int `json:"lifetimeSeconds"`
+
+	// Token The token to present when connecting to the gateway URL.
+	Token string `json:"token"`
+
+	// Url The WebSocket gateway URL to connect to.
+	Url string `json:"url"`
+}
+
 // ApiVersion Identifies the version of the API schema used for this resource.
 // It should be the same than the version in the path, otherwise the request will be rejected.
 type ApiVersion = string
@@ -1214,74 +1228,74 @@ type ApiVersion = string
 // Kind Specifies the type of resource this object represents.
 type Kind = string
 
-// GetComputeV1beta2GlobalComputeProfilesParams defines parameters for GetComputeV1beta2GlobalComputeProfiles.
-type GetComputeV1beta2GlobalComputeProfilesParams struct {
+// ListComputeProfilesParams defines parameters for ListComputeProfiles.
+type ListComputeProfilesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2GlobalDiskImagesEvrocParams defines parameters for GetComputeV1beta2GlobalDiskImagesEvroc.
-type GetComputeV1beta2GlobalDiskImagesEvrocParams struct {
+// ListDiskImagesParams defines parameters for ListDiskImages.
+type ListDiskImagesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisks.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksParams struct {
+// ListDisksParams defines parameters for ListDisks.
+type ListDisksParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachments.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsParams struct {
+// ListHotswapDiskAttachmentsParams defines parameters for ListHotswapDiskAttachments.
+type ListHotswapDiskAttachmentsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroups.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsParams struct {
+// ListPlacementGroupsParams defines parameters for ListPlacementGroups.
+type ListPlacementGroupsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshots.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsParams struct {
+// ListSnapshotsParams defines parameters for ListSnapshots.
+type ListSnapshotsParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// GetComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesParams defines parameters for GetComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachines.
-type GetComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesParams struct {
+// ListVirtualMachinesParams defines parameters for ListVirtualMachines.
+type ListVirtualMachinesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNameDisks for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksJSONRequestBody = DiskRequest
+// CreateDiskJSONRequestBody defines body for CreateDisk for application/json ContentType.
+type CreateDiskJSONRequestBody = DiskRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksDiskIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksDiskID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameDisksDiskIDJSONRequestBody = DiskRequest
+// UpdateDiskJSONRequestBody defines body for UpdateDisk for application/json ContentType.
+type UpdateDiskJSONRequestBody = DiskRequest
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachments for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsJSONRequestBody = HotswapDiskAttachmentRequest
+// CreateHotswapDiskAttachmentJSONRequestBody defines body for CreateHotswapDiskAttachment for application/json ContentType.
+type CreateHotswapDiskAttachmentJSONRequestBody = HotswapDiskAttachmentRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameHotswapDiskAttachmentsHotswapDiskAttachmentIDJSONRequestBody = HotswapDiskAttachmentRequest
+// UpdateHotswapDiskAttachmentJSONRequestBody defines body for UpdateHotswapDiskAttachment for application/json ContentType.
+type UpdateHotswapDiskAttachmentJSONRequestBody = HotswapDiskAttachmentRequest
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroups for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsJSONRequestBody = PlacementGroupRequest
+// CreatePlacementGroupJSONRequestBody defines body for CreatePlacementGroup for application/json ContentType.
+type CreatePlacementGroupJSONRequestBody = PlacementGroupRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNamePlacementGroupsPlacementGroupIDJSONRequestBody = PlacementGroupRequest
+// UpdatePlacementGroupJSONRequestBody defines body for UpdatePlacementGroup for application/json ContentType.
+type UpdatePlacementGroupJSONRequestBody = PlacementGroupRequest
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshots for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsJSONRequestBody = SnapshotRequest
+// CreateSnapshotJSONRequestBody defines body for CreateSnapshot for application/json ContentType.
+type CreateSnapshotJSONRequestBody = SnapshotRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsSnapshotIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsSnapshotID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameSnapshotsSnapshotIDJSONRequestBody = SnapshotRequest
+// UpdateSnapshotJSONRequestBody defines body for UpdateSnapshot for application/json ContentType.
+type UpdateSnapshotJSONRequestBody = SnapshotRequest
 
-// PostComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesJSONRequestBody defines body for PostComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachines for application/json ContentType.
-type PostComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesJSONRequestBody = VirtualMachineRequest
+// CreateVirtualMachineJSONRequestBody defines body for CreateVirtualMachine for application/json ContentType.
+type CreateVirtualMachineJSONRequestBody = VirtualMachineRequest
 
-// PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineIDJSONRequestBody defines body for PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineID for application/json ContentType.
-type PatchComputeV1beta2ProjectsProjectIDRegionsRegionNameVirtualMachinesVirtualMachineIDJSONRequestBody = VirtualMachineRequest
+// UpdateVirtualMachineJSONRequestBody defines body for UpdateVirtualMachine for application/json ContentType.
+type UpdateVirtualMachineJSONRequestBody = VirtualMachineRequest

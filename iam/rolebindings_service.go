@@ -17,6 +17,12 @@ type RoleBindingsService struct {
 	client *Client
 }
 
+// List response types for role bindings, aliased to the API's own list schemas.
+type (
+	RoleBindingList    = iam.RolebindingList
+	OrgRoleBindingList = iam.OrgListResponse
+)
+
 var (
 	userPrincipalRe           = regexp.MustCompile(`^/iam/users/([^/]+)$`)
 	serviceAccountPrincipalRe = regexp.MustCompile(`^/iam/projects/([^/]+)/serviceAccounts/([^/]+)$`)
@@ -184,10 +190,11 @@ func (s *RoleBindingsService) ListRoles(ctx context.Context) (*iam.RoleListRespo
 
 // --- Caller's own role bindings ---
 
-// ListMyRoleBindings returns every role binding granted to the authenticated caller.
-func (s *RoleBindingsService) ListMyRoleBindings(ctx context.Context) (*iam.RolebindingList, error) {
+// ListMyRoleBindings returns every role binding granted to the authenticated caller,
+// with metadata.project or metadata.organization set according to its scope.
+func (s *RoleBindingsService) ListMyRoleBindings(ctx context.Context) (*iam.AnyScopeListResponse, error) {
 	path := s.client.path.GlobalResourcePath("me", "roleBindings")
-	return rest.GetResource[*iam.RolebindingList](ctx, s.client.rest, path)
+	return rest.GetResource[*iam.AnyScopeListResponse](ctx, s.client.rest, path)
 }
 
 // --- Access evaluation ---

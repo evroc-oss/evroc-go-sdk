@@ -16,9 +16,10 @@ func TestGetAPIVersion(t *testing.T) {
 	}{
 		{"compute", "compute", "v1beta2"},
 		{"networking", "networking", "v1beta2"},
-		{"iam", "iam", "v1beta1"},
+		{"iam", "iam", "v1beta2"},
 		{"storage", "storage", "v1"},
 		{"quotas", "quotas", "v1alpha2"},
+		{"kms", "kms", "v1"},
 		{"unknown service", "unknown", ""},
 		{"empty string", "", ""},
 	}
@@ -86,7 +87,7 @@ func TestAPIVersionInfoString(t *testing.T) {
 
 func TestServiceVersionsMap(t *testing.T) {
 	// Verify all expected services are in the map
-	expectedServices := []string{"compute", "networking", "iam", "storage", "quotas", "think", "loadbalancer"}
+	expectedServices := []string{"compute", "networking", "iam", "storage", "quotas", "think", "loadbalancer", "kms"}
 
 	for _, service := range expectedServices {
 		if _, ok := ServiceVersions[service]; !ok {

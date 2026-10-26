@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	apiVersion = "v1beta1"
+	apiVersion = "v1beta2"
 
 	// Resource type constants
 	resourceOrganizations             = "organizations"
@@ -46,10 +46,6 @@ type (
 	ProjectList struct {
 		Items []iam.Project `json:"items,omitempty"`
 	}
-
-	RoleBindingList = iam.RolebindingList
-
-	OrgRoleBindingList = iam.OrgListResponse
 
 	ServiceaccountcredentialList struct {
 		Items []iam.Serviceaccountcredential `json:"items,omitempty"`
