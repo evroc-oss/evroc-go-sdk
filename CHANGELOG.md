@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-02
+
+### Fixed
+- Add API-backed `ComputeProfiles().Validate` and `DiskImages().Validate` methods using the current list endpoints. API errors are propagated without falling back to static catalogs.
+- Cache each catalog on first successful validation, without expiry or automatic refresh; allow sharing snapshots across clients with the same endpoint and credentials.
+- Deprecate static catalog validation helpers while preserving their existing behavior.
+
 ## [0.10.1] - 2026-10-26
 
 ### Added
@@ -181,7 +188,7 @@ Public release
 - End-to-end test suite for all major resources
 - Supply chain security documentation
 
-[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.2...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
@@ -196,3 +203,5 @@ Public release
 [0.10.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.0
 
 [0.10.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.1
+
+[0.10.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.2

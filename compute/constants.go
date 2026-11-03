@@ -1,9 +1,8 @@
 // Copyright 2026 evroc
 // SPDX-License-Identifier: Apache-2.0
 
-// Package compute constants contains all valid disk images and VM compute profiles
-// supported by the evroc platform. Update this file when new images or profiles
-// become available.
+// Package compute constants contains known disk images and VM compute profiles.
+// The cloud API is the authoritative catalog of available compute profiles.
 package compute
 
 import "strings"
@@ -54,7 +53,7 @@ const (
 	DiskImageSLMicro61 DiskImage = "sl-micro.6-1.1"
 )
 
-// ValidDiskImages contains all supported disk images.
+// ValidDiskImages contains known disk images, not an exhaustive catalog.
 var ValidDiskImages = []DiskImage{
 	DiskImageUbuntuMinimal2404,
 	DiskImageUbuntu2404,
@@ -80,12 +79,16 @@ func init() {
 	}
 }
 
-// IsValidDiskImage returns true if the given image name is valid.
+// IsValidDiskImage reports membership in the static catalog of known disk images.
+//
+// Deprecated: Use Client.DiskImages().Validate for API-backed validation.
 func IsValidDiskImage(image string) bool {
 	return validDiskImagesMap[image]
 }
 
-// GetValidDiskImagesString returns a comma-separated string of all valid disk images.
+// GetValidDiskImagesString returns known disk images, not an exhaustive catalog.
+//
+// Deprecated: Use Client.DiskImages().List to discover available images.
 func GetValidDiskImagesString() string {
 	images := make([]string, len(ValidDiskImages))
 	for i, img := range ValidDiskImages {
@@ -227,7 +230,7 @@ var AllVMSizeSeries = []VMSizeSeries{
 	VMSizeSeriesGnB200,
 }
 
-// ValidVMSizes contains all supported VM sizes.
+// ValidVMSizes contains known VM sizes, not an exhaustive catalog.
 var ValidVMSizes []VMSize
 
 // validVMSizesMap provides O(1) lookup for VM size validation.
@@ -246,12 +249,16 @@ func init() {
 	}
 }
 
-// IsValidVMSize returns true if the given VM size is valid.
+// IsValidVMSize reports membership in the static catalog of known VM sizes.
+//
+// Deprecated: Use Client.ComputeProfiles().Validate for API-backed validation.
 func IsValidVMSize(size string) bool {
 	return validVMSizesMap[size]
 }
 
-// GetValidVMSizesString returns a comma-separated string of all valid VM sizes.
+// GetValidVMSizesString returns known VM sizes, not an exhaustive catalog.
+//
+// Deprecated: Use Client.ComputeProfiles().List to discover available profiles.
 func GetValidVMSizesString() string {
 	sizes := make([]string, len(ValidVMSizes))
 	for i, size := range ValidVMSizes {

@@ -34,10 +34,11 @@ type ContextProvider interface {
 
 // Client provides access to evroc compute API
 type Client struct {
-	rest    *rest.Client
-	path    rest.ServicePath
-	parent  ContextProvider
-	metrics *metrics.Manager
+	rest     *rest.Client
+	path     rest.ServicePath
+	parent   ContextProvider
+	metrics  *metrics.Manager
+	catalogs *CatalogCache
 }
 
 // List response types
@@ -78,9 +79,10 @@ type (
 // NewClient creates a new compute API client with a parent context provider
 func NewClient(restClient *rest.Client, parent ContextProvider) *Client {
 	return &Client{
-		rest:   restClient,
-		path:   rest.NewServicePath("compute", apiVersion),
-		parent: parent,
+		rest:     restClient,
+		path:     rest.NewServicePath("compute", apiVersion),
+		parent:   parent,
+		catalogs: &CatalogCache{},
 	}
 }
 
