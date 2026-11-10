@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-11-10
+
+### Added
+- `Client.Close()` releases the client's idle HTTP connections, which otherwise stay open for 90 seconds. Call it when discarding short-lived clients.
+
 ## [0.10.2] - 2026-11-02
 
 ### Fixed
@@ -188,7 +193,7 @@ Public release
 - End-to-end test suite for all major resources
 - Supply chain security documentation
 
-[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.2...HEAD
+[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.3...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
@@ -205,3 +210,4 @@ Public release
 [0.10.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.1
 
 [0.10.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.2
+[0.10.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.3

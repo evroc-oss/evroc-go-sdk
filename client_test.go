@@ -5,9 +5,15 @@ package evroc
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/evroc-oss/evroc-go-sdk/config"
 	"github.com/evroc-oss/evroc-go-sdk/metrics"
@@ -291,4 +297,48 @@ func TestNewFromEnv(t *testing.T) {
 			t.Fatal("client should not be nil")
 		}
 	})
+}
+
+func TestCloseReleasesIdleConnections(t *testing.T) {
+	var open atomic.Int32
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"items":[]}`))
+	}))
+	srv.Config.ConnState = func(_ net.Conn, s http.ConnState) {
+		switch s {
+		case http.StateNew:
+			open.Add(1)
+		case http.StateClosed, http.StateHijacked:
+			open.Add(-1)
+		}
+	}
+	srv.Start()
+	defer srv.Close()
+
+	// A JWT with a future exp, so no token refresh is attempted.
+	payload := base64.RawURLEncoding.EncodeToString(fmt.Appendf(nil, `{"exp":%d}`, time.Now().Add(time.Hour).Unix()))
+	cfg := newTestConfig()
+	cfg.Auth.Token = "e30." + payload + ".sig"
+	cfg.API.BaseURL = srv.URL
+
+	client, err := New(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+	if _, err := client.Compute().VirtualMachines().List(context.Background()); err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if got := open.Load(); got != 1 {
+		t.Fatalf("expected 1 kept-alive connection, got %d", got)
+	}
+
+	client.Close()
+	deadline := time.Now().Add(5 * time.Second)
+	for open.Load() != 0 {
+		if time.Now().After(deadline) {
+			t.Fatalf("connection still open after Close")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 }
