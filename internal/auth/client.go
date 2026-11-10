@@ -251,6 +251,12 @@ func (c *Client) HTTPClient(ctx context.Context) (*http.Client, error) {
 	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
+// Close closes the idle connections of the client's HTTP transport, which is
+// shared by token requests and the authenticated API client.
+func (c *Client) Close() {
+	c.httpClient.CloseIdleConnections()
+}
+
 // Token returns the current access token, refreshing if necessary.
 // TokenSource automatically handles token refresh, so this method just
 // delegates to it and updates the cached token.

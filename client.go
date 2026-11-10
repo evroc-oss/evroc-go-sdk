@@ -363,6 +363,14 @@ func (c *Client) KMS() *kms.Client {
 	return c.kms
 }
 
+// Close releases the connections the client keeps open between requests.
+// Without it they stay open until they have idled for 90 seconds, so call it
+// when a short-lived client is done. A client passed in with WithHTTPClient is
+// left untouched. Requests made after Close open new connections.
+func (c *Client) Close() {
+	c.authClient.Close()
+}
+
 // Config returns the current configuration.
 func (c *Client) Config() config.Config {
 	return *c.config
