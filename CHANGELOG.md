@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-11-10
+
+### Fixed
+- The SDK's HTTP client now honors the `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` environment variables for both token and API requests. Clients created with `WithHTTPClient` are unaffected.
+
 ## [0.10.3] - 2026-11-10
 
 ### Added
@@ -193,7 +198,7 @@ Public release
 - End-to-end test suite for all major resources
 - Supply chain security documentation
 
-[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.3...HEAD
+[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.4...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
@@ -211,3 +216,4 @@ Public release
 
 [0.10.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.2
 [0.10.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.3
+[0.10.4]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.4
