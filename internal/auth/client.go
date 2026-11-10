@@ -14,8 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/evroc-oss/evroc-go-sdk/config"
 	"golang.org/x/oauth2"
+
+	"github.com/evroc-oss/evroc-go-sdk/config"
 )
 
 const (
@@ -80,6 +81,7 @@ func NewClient(ctx context.Context, cfg config.AuthConfig, opts ...Option) (*Cli
 				MaxIdleConnsPerHost: 10,
 				IdleConnTimeout:     90 * time.Second,
 				TLSHandshakeTimeout: 10 * time.Second,
+				Proxy:               http.ProxyFromEnvironment,
 			},
 		},
 	}
