@@ -9,7 +9,7 @@ import "fmt"
 
 // SDKVersion is the semantic version of the SDK itself.
 // Update this when releasing new SDK versions.
-const SDKVersion = "0.10.4"
+const SDKVersion = "0.11.0"
 
 // APIVersion represents an API version string (e.g., "v1alpha2", "v1beta", "v1").
 type APIVersion string
@@ -34,7 +34,7 @@ const (
 	ThinkAPIVersion APIVersion = "v1beta2"
 
 	// LoadBalancer API version (pre-release)
-	LoadBalancerAPIVersion APIVersion = "v1alpha1"
+	LoadBalancerAPIVersion APIVersion = "v1alpha2"
 
 	// KMS API version
 	KMSAPIVersion APIVersion = "v1"

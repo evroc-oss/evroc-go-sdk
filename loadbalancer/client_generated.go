@@ -12,13 +12,15 @@ import (
 )
 
 const (
-	apiVersion = "v1alpha1"
+	apiVersion = "v1alpha2"
 
 	// Resource type constants
-	resourceBackendPools    = "backendPools"
-	resourceBackendServices = "backendServices"
-	resourceL4Routes        = "l4Routes"
-	resourceLoadBalancers   = "loadBalancers"
+	resourceBackendPools             = "backendPools"
+	resourceBackendServices          = "backendServices"
+	resourceHTTPRoutes               = "httpRoutes"
+	resourceL4Routes                 = "l4Routes"
+	resourceLoadBalancers            = "loadBalancers"
+	resourceLoadBalancerCertificates = "loadBalancerCertificates"
 )
 
 // ContextProvider provides access to context configuration
@@ -46,12 +48,20 @@ type (
 		Items []loadbalancer.Backendservice `json:"items,omitempty"`
 	}
 
+	HttprouteList struct {
+		Items []loadbalancer.Httproute `json:"items,omitempty"`
+	}
+
 	L4routeList struct {
 		Items []loadbalancer.L4route `json:"items,omitempty"`
 	}
 
 	LoadbalancerList struct {
 		Items []loadbalancer.Loadbalancer `json:"items,omitempty"`
+	}
+
+	LoadbalancercertificateList struct {
+		Items []loadbalancer.Loadbalancercertificate `json:"items,omitempty"`
 	}
 )
 
@@ -74,6 +84,11 @@ func (c *Client) BackendServices() *BackendServicesService {
 	return &BackendServicesService{client: c}
 }
 
+// HTTPRoutes returns the HTTPRoutes service
+func (c *Client) HTTPRoutes() *HTTPRoutesService {
+	return &HTTPRoutesService{client: c}
+}
+
 // L4Routes returns the L4Routes service
 func (c *Client) L4Routes() *L4RoutesService {
 	return &L4RoutesService{client: c}
@@ -82,4 +97,9 @@ func (c *Client) L4Routes() *L4RoutesService {
 // LoadBalancers returns the LoadBalancers service
 func (c *Client) LoadBalancers() *LoadBalancersService {
 	return &LoadBalancersService{client: c}
+}
+
+// LoadBalancerCertificates returns the LoadBalancerCertificates service
+func (c *Client) LoadBalancerCertificates() *LoadBalancerCertificatesService {
+	return &LoadBalancerCertificatesService{client: c}
 }

@@ -36,7 +36,7 @@ Type-safe API with automatic retries and context support.
 | **IAM** | Projects, role bindings, and service accounts |
 | **Quotas** | Organization and project resource quotas (read-only) |
 | **Think** | Dedicated GPU instances, AI models, API keys, shared models |
-| **LoadBalancer** | L4 load balancers, backend pools, backend services, L4 routes (**pre-release — v1alpha1, subject to breaking changes**) |
+| **LoadBalancer** | Load balancers with TCP, HTTP and HTTPS listeners, backend pools, backend services, L4 routes, HTTP routes, certificates (**pre-release — v1alpha2, subject to breaking changes**) |
 | **KMS** | Encryption keys: create, rotate, suspend/activate, trim, import key material |
 
 ## Requirements

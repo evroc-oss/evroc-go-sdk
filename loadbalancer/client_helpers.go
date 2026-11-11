@@ -28,3 +28,15 @@ func (c *Client) L4RouteRef(name string) string {
 	return fmt.Sprintf("/loadbalancer/projects/%s/regions/%s/l4Routes/%s",
 		c.parent.DefaultProject(), c.parent.DefaultRegion(), name)
 }
+
+// HTTPRouteRef creates a fully-qualified HTTP route reference from a name.
+func (c *Client) HTTPRouteRef(name string) string {
+	return fmt.Sprintf("/loadbalancer/projects/%s/regions/%s/httpRoutes/%s",
+		c.parent.DefaultProject(), c.parent.DefaultRegion(), name)
+}
+
+// LoadBalancerCertificateRef creates a fully-qualified load balancer certificate reference from a name.
+func (c *Client) LoadBalancerCertificateRef(name string) string {
+	return fmt.Sprintf("/loadbalancer/projects/%s/regions/%s/loadBalancerCertificates/%s",
+		c.parent.DefaultProject(), c.parent.DefaultRegion(), name)
+}
