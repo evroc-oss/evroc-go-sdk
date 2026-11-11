@@ -24,8 +24,8 @@ const (
 
 // Defines values for BackendserviceSpecHealthCheckHttpMethod.
 const (
-	GET  BackendserviceSpecHealthCheckHttpMethod = "GET"
-	HEAD BackendserviceSpecHealthCheckHttpMethod = "HEAD"
+	BackendserviceSpecHealthCheckHttpMethodGET  BackendserviceSpecHealthCheckHttpMethod = "GET"
+	BackendserviceSpecHealthCheckHttpMethodHEAD BackendserviceSpecHealthCheckHttpMethod = "HEAD"
 )
 
 // Defines values for BackendserviceStatusConditionsItemStatus.
@@ -33,6 +33,37 @@ const (
 	BackendserviceStatusConditionsItemStatusFalse   BackendserviceStatusConditionsItemStatus = "False"
 	BackendserviceStatusConditionsItemStatusTrue    BackendserviceStatusConditionsItemStatus = "True"
 	BackendserviceStatusConditionsItemStatusUnknown BackendserviceStatusConditionsItemStatus = "Unknown"
+)
+
+// Defines values for CertificateContentResultDataResult.
+const (
+	Success CertificateContentResultDataResult = "success"
+)
+
+// Defines values for HttprouteSpecRulesItemMatchesMethod.
+const (
+	HttprouteSpecRulesItemMatchesMethodCONNECT HttprouteSpecRulesItemMatchesMethod = "CONNECT"
+	HttprouteSpecRulesItemMatchesMethodDELETE  HttprouteSpecRulesItemMatchesMethod = "DELETE"
+	HttprouteSpecRulesItemMatchesMethodGET     HttprouteSpecRulesItemMatchesMethod = "GET"
+	HttprouteSpecRulesItemMatchesMethodHEAD    HttprouteSpecRulesItemMatchesMethod = "HEAD"
+	HttprouteSpecRulesItemMatchesMethodOPTIONS HttprouteSpecRulesItemMatchesMethod = "OPTIONS"
+	HttprouteSpecRulesItemMatchesMethodPATCH   HttprouteSpecRulesItemMatchesMethod = "PATCH"
+	HttprouteSpecRulesItemMatchesMethodPOST    HttprouteSpecRulesItemMatchesMethod = "POST"
+	HttprouteSpecRulesItemMatchesMethodPUT     HttprouteSpecRulesItemMatchesMethod = "PUT"
+	HttprouteSpecRulesItemMatchesMethodTRACE   HttprouteSpecRulesItemMatchesMethod = "TRACE"
+)
+
+// Defines values for HttprouteSpecRulesItemPathType.
+const (
+	Exact      HttprouteSpecRulesItemPathType = "Exact"
+	PathPrefix HttprouteSpecRulesItemPathType = "PathPrefix"
+)
+
+// Defines values for HttprouteStatusConditionsItemStatus.
+const (
+	HttprouteStatusConditionsItemStatusFalse   HttprouteStatusConditionsItemStatus = "False"
+	HttprouteStatusConditionsItemStatusTrue    HttprouteStatusConditionsItemStatus = "True"
+	HttprouteStatusConditionsItemStatusUnknown HttprouteStatusConditionsItemStatus = "Unknown"
 )
 
 // Defines values for L4routeStatusConditionsItemStatus.
@@ -51,14 +82,24 @@ const (
 
 // Defines values for LoadbalancerSpecListenersItemProtocol.
 const (
-	TCP LoadbalancerSpecListenersItemProtocol = "TCP"
+	HTTP  LoadbalancerSpecListenersItemProtocol = "HTTP"
+	HTTPS LoadbalancerSpecListenersItemProtocol = "HTTPS"
+	TCP   LoadbalancerSpecListenersItemProtocol = "TCP"
+	TLS   LoadbalancerSpecListenersItemProtocol = "TLS"
 )
 
 // Defines values for LoadbalancerStatusConditionsItemStatus.
 const (
-	False   LoadbalancerStatusConditionsItemStatus = "False"
-	True    LoadbalancerStatusConditionsItemStatus = "True"
-	Unknown LoadbalancerStatusConditionsItemStatus = "Unknown"
+	LoadbalancerStatusConditionsItemStatusFalse   LoadbalancerStatusConditionsItemStatus = "False"
+	LoadbalancerStatusConditionsItemStatusTrue    LoadbalancerStatusConditionsItemStatus = "True"
+	LoadbalancerStatusConditionsItemStatusUnknown LoadbalancerStatusConditionsItemStatus = "Unknown"
+)
+
+// Defines values for LoadbalancercertificateStatusConditionsItemStatus.
+const (
+	False   LoadbalancercertificateStatusConditionsItemStatus = "False"
+	True    LoadbalancercertificateStatusConditionsItemStatus = "True"
+	Unknown LoadbalancercertificateStatusConditionsItemStatus = "Unknown"
 )
 
 // Backendpool defines model for Backendpool.
@@ -147,7 +188,7 @@ type BackendserviceSpec struct {
 	HealthCheck *BackendserviceSpecHealthCheck `json:"healthCheck,omitempty"`
 
 	// IpProtocolSelection IPProtocolSelection controls which IP address type is used for backends.
-	IpProtocolSelection *BackendserviceSpecIpProtocolSelection `json:"ipProtocolSelection,omitempty"`
+	IpProtocolSelection BackendserviceSpecIpProtocolSelection `json:"ipProtocolSelection"`
 
 	// Port The listening port for this Backend Service.
 	Port int32 `json:"port"`
@@ -273,6 +314,38 @@ type BaseMetadataResponse struct {
 	Uid openapi_types.UUID `json:"uid"`
 }
 
+// CertificateContent defines model for CertificateContent.
+type CertificateContent struct {
+	// Certificate PEM certificate chain.
+	Certificate string `json:"certificate"`
+
+	// PrivateKey PEM private key matching the certificate.
+	PrivateKey string `json:"privateKey"`
+}
+
+// CertificateContentError defines model for CertificateContentError.
+type CertificateContentError struct {
+	Error CertificateContentErrorError `json:"error"`
+}
+
+// CertificateContentErrorError defines model for CertificateContentErrorError.
+type CertificateContentErrorError struct {
+	Message string `json:"message"`
+}
+
+// CertificateContentResult defines model for CertificateContentResult.
+type CertificateContentResult struct {
+	Data CertificateContentResultData `json:"data"`
+}
+
+// CertificateContentResultData defines model for CertificateContentResultData.
+type CertificateContentResultData struct {
+	Result CertificateContentResultDataResult `json:"result"`
+}
+
+// CertificateContentResultDataResult defines model for CertificateContentResultData.Result.
+type CertificateContentResultDataResult string
+
 // Error Standard error response sent by all endpoints on failure.
 type Error struct {
 	// Debug Additional human-readable diagnostic information in English. This content is safe to surface to end users. MUST NOT be used for programmatic logic. The content may evolve at any time and is not stable.
@@ -290,6 +363,154 @@ type GlobalMetadataRequest struct {
 	// UserLabels Map of string keys and string values used to organize and select resources. UserLabels are fully managed by the user and can be referenced by label selectors.
 	UserLabels *UserLabels `json:"userLabels,omitempty"`
 }
+
+// Httproute defines model for Httproute.
+type Httproute struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for regional project-scoped resource
+	Metadata RegionalMetadataResponse `json:"metadata"`
+
+	// Spec HTTPRouteSpec defines host and request matching, and destinations for HTTP traffic.
+	Spec HttprouteSpec `json:"spec"`
+
+	// Status HTTPRouteStatus defines the observed state of an HTTPRoute.
+	Status HttprouteStatus `json:"status"`
+}
+
+// HttprouteList defines model for HttprouteList.
+type HttprouteList struct {
+	Items *[]Httproute `json:"items,omitempty"`
+}
+
+// HttprouteRequest defines model for HttprouteRequest.
+type HttprouteRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for region-scoped resource
+	Metadata RegionalMetadataRequest `json:"metadata"`
+
+	// Spec HTTPRouteSpec defines host and request matching, and destinations for HTTP traffic.
+	Spec HttprouteSpec `json:"spec"`
+}
+
+// HttprouteSpec HTTPRouteSpec defines host and request matching, and destinations for HTTP traffic.
+type HttprouteSpec struct {
+	// Hostnames Hostnames limits this route to requests with matching Host headers. If omitted, the route matches all hostnames
+	// accepted by the listener that references it.
+	Hostnames *[]string `json:"hostnames,omitempty"`
+
+	// Rules Rules define request matches and the backend services that receive matching traffic. A rule with no matches is
+	// a catch-all.
+	Rules []HttprouteSpecRulesItem `json:"rules"`
+}
+
+// HttprouteSpecRulesItem HTTPRouteRule matches requests and forwards them to one backend service.
+type HttprouteSpecRulesItem struct {
+	// BackendServiceRef BackendServiceRef identifies the service whose weighted backends receive matching traffic.
+	BackendServiceRef string `json:"backendServiceRef"`
+
+	// Matches Matches select requests for this rule. Each entry is ORed with the others. Within one match, all fields are ANDed.
+	// If omitted, the rule matches all requests.
+	Matches *[]struct {
+		// Headers Headers match request header values. All entries must match.
+		Headers *[]HttprouteSpecRulesItemHeadersItem `json:"headers,omitempty"`
+
+		// Method Method matches the request method.
+		Method *HttprouteSpecRulesItemMatchesMethod `json:"method,omitempty"`
+
+		// Path Path matches the request path. If omitted, the match uses a PathPrefix match on "/".
+		Path *HttprouteSpecRulesItemPath `json:"path,omitempty"`
+
+		// QueryParams QueryParams match request query parameter values. All entries must match.
+		QueryParams *[]HttprouteSpecRulesItemQueryParamsItem `json:"queryParams,omitempty"`
+	} `json:"matches,omitempty"`
+
+	// Name The name of the rule. Must be unique per HTTPRoute and remains stable when rules are reordered.
+	Name string `json:"name"`
+}
+
+// HttprouteSpecRulesItemMatchesMethod Method matches the request method.
+type HttprouteSpecRulesItemMatchesMethod string
+
+// HttprouteSpecRulesItemHeadersItem HeaderMatch matches an HTTP request header.
+type HttprouteSpecRulesItemHeadersItem struct {
+	// Name Name is the case-insensitive header name.
+	Name string `json:"name"`
+
+	// Value Value is the header value to match.
+	Value string `json:"value"`
+}
+
+// HttprouteSpecRulesItemPath Path matches the request path. If omitted, the match uses a PathPrefix match on "/".
+type HttprouteSpecRulesItemPath struct {
+	// Type Type controls how Value is matched. Defaults to PathPrefix.
+	Type *HttprouteSpecRulesItemPathType `json:"type,omitempty"`
+
+	// Value Value is the path value to match. Defaults to "/".
+	Value *string `json:"value,omitempty"`
+}
+
+// HttprouteSpecRulesItemPathType Type controls how Value is matched. Defaults to PathPrefix.
+type HttprouteSpecRulesItemPathType string
+
+// HttprouteSpecRulesItemQueryParamsItem QueryParamMatch matches an HTTP request query parameter.
+type HttprouteSpecRulesItemQueryParamsItem struct {
+	// Name Name is the query parameter name.
+	Name string `json:"name"`
+
+	// Value Value is the query parameter value to match.
+	Value string `json:"value"`
+}
+
+// HttprouteStatus HTTPRouteStatus defines the observed state of an HTTPRoute.
+type HttprouteStatus struct {
+	// Conditions ConditionsSet is an abstraction over []metav1.Condition that handles the
+	// removal of the previous occurrence of the conditionType when marking a condition.
+	Conditions *[]HttprouteStatusConditionsItem `json:"conditions,omitempty"`
+}
+
+// HttprouteStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type HttprouteStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status HttprouteStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// HttprouteStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type HttprouteStatusConditionsItemStatus string
 
 // L4route defines model for L4route.
 type L4route struct {
@@ -327,8 +548,8 @@ type L4routeRequest struct {
 
 // L4routeSpec defines model for L4routeSpec.
 type L4routeSpec struct {
-	// DefaultBackendServiceRef BackendService for traffic.
-	DefaultBackendServiceRef string `json:"defaultBackendServiceRef"`
+	// BackendServiceRef BackendServiceRef identifies the service whose weighted backends receive this route traffic.
+	BackendServiceRef string `json:"backendServiceRef"`
 }
 
 // L4routeStatus defines model for L4routeStatus.
@@ -436,7 +657,7 @@ type LoadbalancerSpecBackendNetwork struct {
 // LoadbalancerSpecBackendNetworkSubnetsZone A zone name.
 type LoadbalancerSpecBackendNetworkSubnetsZone string
 
-// LoadbalancerSpecListenersItem defines model for LoadbalancerSpecListenersItem.
+// LoadbalancerSpecListenersItem ListenerSpec defines the network listener and route attachment for a LoadBalancer.
 type LoadbalancerSpecListenersItem struct {
 	// Name The name of the Listener. Optional. Must be unique per Load Balancer.
 	Name *string `json:"name,omitempty"`
@@ -444,14 +665,22 @@ type LoadbalancerSpecListenersItem struct {
 	// Port The listening port for this Listener.
 	Port int32 `json:"port"`
 
-	// Protocol Network protocol for this Listener. Allowed values: TCP.
+	// Protocol Network protocol for this Listener. Allowed values: TCP, HTTP, HTTPS, TLS.
+	// TLS is reserved for future use and not currently allowed to be set.
 	Protocol LoadbalancerSpecListenersItemProtocol `json:"protocol"`
 
 	// RouteRefs The routes for this listener.
 	RouteRefs *[]string `json:"routeRefs,omitempty"`
+
+	// Tls TLS configures certificate-based TLS termination for HTTPS listeners.
+	Tls *struct {
+		// CertificateRef CertificateRef references the LoadBalancerCertificate used to terminate TLS for this listener.
+		CertificateRef string `json:"certificateRef"`
+	} `json:"tls,omitempty"`
 }
 
-// LoadbalancerSpecListenersItemProtocol Network protocol for this Listener. Allowed values: TCP.
+// LoadbalancerSpecListenersItemProtocol Network protocol for this Listener. Allowed values: TCP, HTTP, HTTPS, TLS.
+// TLS is reserved for future use and not currently allowed to be set.
 type LoadbalancerSpecListenersItemProtocol string
 
 // LoadbalancerStatus defines model for LoadbalancerStatus.
@@ -500,7 +729,113 @@ type LoadbalancerStatusConditionsItemStatus string
 type LoadbalancerStatusNetworking struct {
 	// PublicIPv4Address The assigned public IPv4 address of the Load Balancer.
 	PublicIPv4Address *string `json:"publicIPv4Address,omitempty"`
+
+	// PublicIPv6Address The assigned public IPv6 address of the Load Balancer.
+	PublicIPv6Address *string `json:"publicIPv6Address,omitempty"`
 }
+
+// Loadbalancercertificate defines model for Loadbalancercertificate.
+type Loadbalancercertificate struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for regional project-scoped resource
+	Metadata RegionalMetadataResponse `json:"metadata"`
+
+	// Spec LoadBalancerCertificateSpec is intentionally empty. Certificate and key content is uploaded through content endpoints.
+	Spec LoadbalancercertificateSpec `json:"spec"`
+
+	// Status LoadBalancerCertificateStatus describes uploaded certificate metadata and readiness.
+	Status LoadbalancercertificateStatus `json:"status"`
+}
+
+// LoadbalancercertificateList defines model for LoadbalancercertificateList.
+type LoadbalancercertificateList struct {
+	Items *[]Loadbalancercertificate `json:"items,omitempty"`
+}
+
+// LoadbalancercertificateRequest defines model for LoadbalancercertificateRequest.
+type LoadbalancercertificateRequest struct {
+	// ApiVersion Identifies the version of the API schema used for this resource.
+	// It should be the same than the version in the path, otherwise the request will be rejected.
+	ApiVersion ApiVersion `json:"apiVersion"`
+
+	// Kind Specifies the type of resource this object represents.
+	Kind Kind `json:"kind"`
+
+	// Metadata Standard metadata for region-scoped resource
+	Metadata RegionalMetadataRequest `json:"metadata"`
+
+	// Spec LoadBalancerCertificateSpec is intentionally empty. Certificate and key content is uploaded through content endpoints.
+	Spec LoadbalancercertificateSpec `json:"spec"`
+}
+
+// LoadbalancercertificateSpec LoadBalancerCertificateSpec is intentionally empty. Certificate and key content is uploaded through content endpoints.
+type LoadbalancercertificateSpec = map[string]interface{}
+
+// LoadbalancercertificateStatus LoadBalancerCertificateStatus describes uploaded certificate metadata and readiness.
+type LoadbalancercertificateStatus struct {
+	// CertificateSha256Fingerprint CertificateSHA256Fingerprint is the SHA256 fingerprint of the leaf certificate.
+	CertificateSha256Fingerprint *string `json:"certificateSha256Fingerprint,omitempty"`
+
+	// Conditions ConditionsSet is an abstraction over []metav1.Condition that handles the
+	// removal of the previous occurrence of the conditionType when marking a condition.
+	Conditions *[]LoadbalancercertificateStatusConditionsItem `json:"conditions,omitempty"`
+
+	// Issuer Issuer is the leaf certificate issuer.
+	Issuer *string `json:"issuer,omitempty"`
+
+	// NotAfter NotAfter is the end of the leaf certificate validity window.
+	NotAfter *time.Time `json:"notAfter,omitempty"`
+
+	// NotBefore NotBefore is the start of the leaf certificate validity window.
+	NotBefore *time.Time `json:"notBefore,omitempty"`
+
+	// PublicKeySha256Fingerprint PublicKeySHA256Fingerprint is the SHA256 fingerprint of the private key's public key.
+	PublicKeySha256Fingerprint *string `json:"publicKeySha256Fingerprint,omitempty"`
+
+	// Subject Subject is the leaf certificate subject.
+	Subject *string `json:"subject,omitempty"`
+
+	// SubjectAlternativeNames SubjectAlternativeNames are the DNS names and IP addresses in the leaf certificate SAN extension.
+	SubjectAlternativeNames *[]string `json:"subjectAlternativeNames,omitempty"`
+}
+
+// LoadbalancercertificateStatusConditionsItem Condition contains details for one aspect of the current state of this API Resource.
+type LoadbalancercertificateStatusConditionsItem struct {
+	// LastTransitionTime lastTransitionTime is the last time the condition transitioned from one status to another.
+	// This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+	LastTransitionTime time.Time `json:"lastTransitionTime"`
+
+	// Message message is a human readable message indicating details about the transition.
+	// This may be an empty string.
+	Message string `json:"message"`
+
+	// ObservedGeneration observedGeneration represents the .metadata.generation that the condition was set based upon.
+	// For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+	// with respect to the current state of the instance.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// Reason reason contains a programmatic identifier indicating the reason for the condition's last transition.
+	// Producers of specific condition types may define expected values and meanings for this field,
+	// and whether the values are considered a guaranteed API.
+	// The value should be a CamelCase string.
+	// This field may not be empty.
+	Reason string `json:"reason"`
+
+	// Status status of the condition, one of True, False, Unknown.
+	Status LoadbalancercertificateStatusConditionsItemStatus `json:"status"`
+
+	// Type type of condition in CamelCase or in foo.example.com/CamelCase.
+	Type string `json:"type"`
+}
+
+// LoadbalancercertificateStatusConditionsItemStatus status of the condition, one of True, False, Unknown.
+type LoadbalancercertificateStatusConditionsItemStatus string
 
 // RegionalMetadataRequest defines model for RegionalMetadataRequest.
 type RegionalMetadataRequest struct {
@@ -572,8 +907,20 @@ type ListBackendServicesParams struct {
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
 
+// ListHTTPRoutesParams defines parameters for ListHTTPRoutes.
+type ListHTTPRoutesParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
 // ListL4RoutesParams defines parameters for ListL4Routes.
 type ListL4RoutesParams struct {
+	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
+	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
+}
+
+// ListLoadBalancerCertificatesParams defines parameters for ListLoadBalancerCertificates.
+type ListLoadBalancerCertificatesParams struct {
 	// LabelSelector Optional label selector to select resources using Kubernetes-style selector syntax. This can be used with label keys from userLabels and systemLabels, using the prefixed syntax (e.g. "team in (frontend,backend)", "networking.evroc.com/managed-network=default").
 	LabelSelector *string `form:"labelSelector,omitempty" json:"labelSelector,omitempty"`
 }
@@ -596,11 +943,23 @@ type CreateBackendServiceJSONRequestBody = BackendserviceRequest
 // UpdateBackendServiceJSONRequestBody defines body for UpdateBackendService for application/json ContentType.
 type UpdateBackendServiceJSONRequestBody = BackendserviceRequest
 
+// CreateHTTPRouteJSONRequestBody defines body for CreateHTTPRoute for application/json ContentType.
+type CreateHTTPRouteJSONRequestBody = HttprouteRequest
+
+// UpdateHTTPRouteJSONRequestBody defines body for UpdateHTTPRoute for application/json ContentType.
+type UpdateHTTPRouteJSONRequestBody = HttprouteRequest
+
 // CreateL4RouteJSONRequestBody defines body for CreateL4Route for application/json ContentType.
 type CreateL4RouteJSONRequestBody = L4routeRequest
 
 // UpdateL4RouteJSONRequestBody defines body for UpdateL4Route for application/json ContentType.
 type UpdateL4RouteJSONRequestBody = L4routeRequest
+
+// CreateLoadBalancerCertificateJSONRequestBody defines body for CreateLoadBalancerCertificate for application/json ContentType.
+type CreateLoadBalancerCertificateJSONRequestBody = LoadbalancercertificateRequest
+
+// PostLoadbalancerV1alpha2ProjectsProjectIDRegionsRegionNameLoadBalancerCertificatesLoadBalancerCertificateIDContentJSONRequestBody defines body for PostLoadbalancerV1alpha2ProjectsProjectIDRegionsRegionNameLoadBalancerCertificatesLoadBalancerCertificateIDContent for application/json ContentType.
+type PostLoadbalancerV1alpha2ProjectsProjectIDRegionsRegionNameLoadBalancerCertificatesLoadBalancerCertificateIDContentJSONRequestBody = CertificateContent
 
 // CreateLoadBalancerJSONRequestBody defines body for CreateLoadBalancer for application/json ContentType.
 type CreateLoadBalancerJSONRequestBody = LoadbalancerRequest

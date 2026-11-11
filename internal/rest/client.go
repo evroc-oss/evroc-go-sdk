@@ -108,6 +108,16 @@ func (c *Client) Post(ctx context.Context, path string, body any) (*http.Respons
 	return c.doJSON(ctx, http.MethodPost, path, body)
 }
 
+// PostRaw performs a POST request with a non-JSON body of the given content type.
+func (c *Client) PostRaw(ctx context.Context, path, contentType string, body []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", contentType)
+	return c.Do(ctx, req)
+}
+
 // Patch performs a PATCH request with a JSON body.
 func (c *Client) Patch(ctx context.Context, path string, body any) (*http.Response, error) {
 	return c.doJSON(ctx, http.MethodPatch, path, body)

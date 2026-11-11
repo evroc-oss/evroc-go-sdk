@@ -1,7 +1,7 @@
 // Copyright 2026 evroc
 // SPDX-License-Identifier: Apache-2.0
 
-// Package loadbalancer provides access to the evroc LoadBalancer v1alpha1 API.
+// Package loadbalancer provides access to the evroc LoadBalancer v1alpha2 API.
 //
 // # Resources
 //
@@ -22,6 +22,7 @@
 //
 //	svc, _ := loadbalancer.NewBackendServiceBuilder("my-svc").
 //	    WithPort(8080).
+//	    WithIPProtocol(lbtypes.IPv4).
 //	    WithBackendPoolRef(lbs.BackendPoolRef("my-pool")).
 //	    Create(ctx, lbs.BackendServices())
 //

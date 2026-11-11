@@ -87,7 +87,7 @@ func lbMux() *http.ServeMux {
 				ApiVersion: builderAPIVersion,
 				Kind:       "L4Route",
 				Metadata:   lbtypes.RegionalMetadataResponse{Id: "test-route"},
-				Spec:       lbtypes.L4routeSpec{DefaultBackendServiceRef: "/loadbalancer/projects/p/regions/r/backendServices/test-svc"},
+				Spec:       lbtypes.L4routeSpec{BackendServiceRef: "/loadbalancer/projects/p/regions/r/backendServices/test-svc"},
 			}
 			switch r.Method {
 			case http.MethodPost:
@@ -353,8 +353,8 @@ func TestL4RouteBuilder(t *testing.T) {
 	if req.Metadata.Id != "my-route" {
 		t.Errorf("expected ID 'my-route', got %s", req.Metadata.Id)
 	}
-	if req.Spec.DefaultBackendServiceRef != "/loadbalancer/projects/p/regions/r/backendServices/my-svc" {
-		t.Error("DefaultBackendServiceRef not set")
+	if req.Spec.BackendServiceRef != "/loadbalancer/projects/p/regions/r/backendServices/my-svc" {
+		t.Error("BackendServiceRef not set")
 	}
 	if req.Metadata.UserLabels == nil || (*req.Metadata.UserLabels)["env"] != "prod" {
 		t.Error("labels not set on L4Route")
@@ -418,7 +418,7 @@ func TestL4Routes_CRUD(t *testing.T) {
 		ApiVersion: builderAPIVersion,
 		Kind:       "L4Route",
 		Metadata:   lbtypes.RegionalMetadataRequest{Id: "test-route"},
-		Spec:       lbtypes.L4routeSpec{DefaultBackendServiceRef: "ref"},
+		Spec:       lbtypes.L4routeSpec{BackendServiceRef: "ref"},
 	})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
@@ -493,7 +493,7 @@ func TestL4Routes_ListPatch(t *testing.T) {
 		t.Fatal("expected non-nil list")
 	}
 	if _, err := client.L4Routes().Patch(ctx, "test-route", map[string]interface{}{
-		"spec": lbtypes.L4routeSpec{DefaultBackendServiceRef: "new-ref"},
+		"spec": lbtypes.L4routeSpec{BackendServiceRef: "new-ref"},
 	}); err != nil {
 		t.Fatalf("Patch: %v", err)
 	}
@@ -586,5 +586,35 @@ func TestWaitForDeleted(t *testing.T) {
 	}
 	if calls < 2 {
 		t.Errorf("expected at least 2 polls, got %d", calls)
+	}
+}
+
+func TestBackendServiceBuilderIPProtocol(t *testing.T) {
+	req := NewBackendServiceBuilder("svc").WithPort(80).WithIPProtocol(lbtypes.IPv6).Build()
+	if req.Spec.IpProtocolSelection != lbtypes.IPv6 {
+		t.Errorf("IpProtocolSelection = %q, want IPv6", req.Spec.IpProtocolSelection)
+	}
+}
+
+func TestHTTPRouteBuilder(t *testing.T) {
+	req := NewHTTPRouteBuilder("web").
+		WithHostnames("example.com").
+		WithRule(lbtypes.HttprouteSpecRulesItem{Name: "all", BackendServiceRef: "svc-ref"}).
+		Build()
+	if req.Kind != "HTTPRoute" || req.Metadata.Id != "web" {
+		t.Errorf("unexpected request: %+v", req)
+	}
+	if req.Spec.Hostnames == nil || (*req.Spec.Hostnames)[0] != "example.com" {
+		t.Errorf("hostnames not set: %+v", req.Spec.Hostnames)
+	}
+	if len(req.Spec.Rules) != 1 || req.Spec.Rules[0].BackendServiceRef != "svc-ref" {
+		t.Errorf("rules not set: %+v", req.Spec.Rules)
+	}
+}
+
+func TestLoadBalancerCertificateBuilder(t *testing.T) {
+	req := NewLoadBalancerCertificateBuilder("cert").WithLabels(map[string]string{"a": "b"}).Build()
+	if req.Kind != "LoadBalancerCertificate" || req.Metadata.Id != "cert" || req.Metadata.UserLabels == nil {
+		t.Errorf("unexpected request: %+v", req)
 	}
 }

@@ -53,3 +53,30 @@ func IsL4RouteReady(route *lbtypes.L4route) bool {
 	return false
 }
 
+
+// IsHTTPRouteReady returns true if the HTTPRoute has a Ready=True condition.
+func IsHTTPRouteReady(route *lbtypes.Httproute) bool {
+	if route == nil || route.Status.Conditions == nil {
+		return false
+	}
+	for _, cond := range *route.Status.Conditions {
+		if cond.Type == "Ready" && string(cond.Status) == "True" {
+			return true
+		}
+	}
+	return false
+}
+
+// IsCertificateReady returns true if the LoadBalancerCertificate has a Ready=True condition,
+// i.e. its uploaded content has been validated.
+func IsCertificateReady(cert *lbtypes.Loadbalancercertificate) bool {
+	if cert == nil || cert.Status.Conditions == nil {
+		return false
+	}
+	for _, cond := range *cert.Status.Conditions {
+		if cond.Type == "Ready" && string(cond.Status) == "True" {
+			return true
+		}
+	}
+	return false
+}

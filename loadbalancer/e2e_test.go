@@ -7,7 +7,19 @@ package loadbalancer_test
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/hex"
+	"encoding/pem"
 	"fmt"
+	"math/big"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,6 +36,8 @@ const (
 	deleteTimeout  = 2 * time.Minute
 	ipReadyTimeout = 2 * time.Minute
 	backendPort    = 8080
+	certTimeout    = 3 * time.Minute
+	httpsTimeout   = 5 * time.Minute
 )
 
 func newTestClient(t *testing.T) (*evroc.Client, *loadbalancer.Client) {
@@ -33,8 +47,10 @@ func newTestClient(t *testing.T) (*evroc.Client, *loadbalancer.Client) {
 }
 
 // TestE2E_LoadBalancer_FullStack creates the full LB resource graph
-// (IP + disk + VM → pool → service → route → LB), validates every
-// resource via Get/List, then tears down in reverse order.
+// (IP + disk + VM → pool → service → L4 route + HTTP route + certificate → LB
+// with TCP and HTTPS listeners), validates every resource via Get/List, checks
+// that HTTPS traffic reaches the VM with the uploaded certificate, renews the
+// certificate in place, then tears down in reverse order.
 func TestE2E_LoadBalancer_FullStack(t *testing.T) {
 	e2etest.PreCheck(t)
 
@@ -49,6 +65,8 @@ func TestE2E_LoadBalancer_FullStack(t *testing.T) {
 	poolName := "pool-" + suffix
 	svcName := "svc-" + suffix
 	routeName := "route-" + suffix
+	httpRouteName := "httproute-" + suffix
+	certName := "cert-" + suffix
 	lbName := "lb-" + suffix
 
 	// Track deletions so cleanups can be skipped when the test deletes successfully.
@@ -61,6 +79,9 @@ func TestE2E_LoadBalancer_FullStack(t *testing.T) {
 		svcDeleted   bool
 		routeDeleted bool
 		lbDeleted    bool
+
+		httpRouteDeleted bool
+		certDeleted      bool
 	)
 
 	// --- Security Group (allow port 80 for LB health checks) ---
@@ -157,6 +178,13 @@ runcmd:
 
 	// --- LB cleanup registrations (LIFO: first registered = last to run) ---
 	t.Cleanup(func() {
+		if !certDeleted {
+			t.Logf("Cleaning up certificate: %s", certName)
+			lb.LoadBalancerCertificates().Delete(ctx, certName)
+			lb.LoadBalancerCertificates().WaitForDeleted(ctx, certName, deleteTimeout)
+		}
+	})
+	t.Cleanup(func() {
 		if !poolDeleted {
 			t.Logf("Cleaning up backend pool: %s", poolName)
 			lb.BackendPools().Delete(ctx, poolName)
@@ -175,6 +203,13 @@ runcmd:
 			t.Logf("Cleaning up L4 route: %s", routeName)
 			lb.L4Routes().Delete(ctx, routeName)
 			lb.L4Routes().WaitForDeleted(ctx, routeName, deleteTimeout)
+		}
+	})
+	t.Cleanup(func() {
+		if !httpRouteDeleted {
+			t.Logf("Cleaning up HTTP route: %s", httpRouteName)
+			lb.HTTPRoutes().Delete(ctx, httpRouteName)
+			lb.HTTPRoutes().WaitForDeleted(ctx, httpRouteName, deleteTimeout)
 		}
 	})
 	t.Cleanup(func() {
@@ -217,6 +252,7 @@ runcmd:
 	t.Logf("Creating backend service: %s", svcName)
 	svc, err := loadbalancer.NewBackendServiceBuilder(svcName).
 		WithPort(backendPort).
+		WithIPProtocol(lbtypes.IPv4).
 		WithBackendPoolRef(lb.BackendPoolRef(poolName)).
 		WithHTTPHealthCheck("/").
 		Create(ctx, lb.BackendServices())
@@ -257,9 +293,9 @@ runcmd:
 	if err != nil {
 		t.Fatalf("failed to get L4 route: %v", err)
 	}
-	if route.Spec.DefaultBackendServiceRef != lb.BackendServiceRef(svcName) {
+	if route.Spec.BackendServiceRef != lb.BackendServiceRef(svcName) {
 		t.Errorf("expected backend service ref %s, got %s",
-			lb.BackendServiceRef(svcName), route.Spec.DefaultBackendServiceRef)
+			lb.BackendServiceRef(svcName), route.Spec.BackendServiceRef)
 	}
 
 	t.Logf("Listing L4 routes")
@@ -270,9 +306,59 @@ runcmd:
 	e2etest.AssertInList(t, routes.Items, routeName,
 		func(r lbtypes.L4route) string { return r.Metadata.Id }, "L4 route")
 
+	// --- LoadBalancerCertificate ---
+	certKey, certPEM, keyPEM := selfSignedCert(t, nil)
+	t.Logf("Creating certificate: %s", certName)
+	if _, err := loadbalancer.NewLoadBalancerCertificateBuilder(certName).
+		Create(ctx, lb.LoadBalancerCertificates()); err != nil {
+		t.Fatalf("failed to create certificate: %v", err)
+	}
+	t.Logf("Uploading certificate content")
+	if err := lb.LoadBalancerCertificates().UploadContent(ctx, certName, certPEM, keyPEM); err != nil {
+		t.Fatalf("failed to upload certificate content: %v", err)
+	}
+	cert, err := lb.LoadBalancerCertificates().WaitForReady(ctx, certName, certTimeout)
+	if err != nil {
+		t.Fatalf("certificate never became ready: %v", err)
+	}
+	if got, want := deref(cert.Status.CertificateSha256Fingerprint), pemFingerprint(t, certPEM); !strings.EqualFold(got, want) {
+		t.Errorf("certificate fingerprint = %s, want %s", got, want)
+	}
+	if cert.Status.NotAfter == nil {
+		t.Error("expected certificate status to report notAfter")
+	}
+
+	t.Logf("Listing certificates")
+	certs, err := lb.LoadBalancerCertificates().List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list certificates: %v", err)
+	}
+	e2etest.AssertInList(t, certs.Items, certName,
+		func(c lbtypes.Loadbalancercertificate) string { return c.Metadata.Id }, "certificate")
+
+	// --- HTTPRoute ---
+	t.Logf("Creating HTTP route: %s", httpRouteName)
+	httpRoute, err := loadbalancer.NewHTTPRouteBuilder(httpRouteName).
+		WithRule(lbtypes.HttprouteSpecRulesItem{Name: "all", BackendServiceRef: lb.BackendServiceRef(svcName)}).
+		Create(ctx, lb.HTTPRoutes())
+	if err != nil {
+		t.Fatalf("failed to create HTTP route: %v", err)
+	}
+	e2etest.MustGetID(t, httpRoute.Metadata.Id, "HTTP route")
+
+	t.Logf("Listing HTTP routes")
+	httpRoutes, err := lb.HTTPRoutes().List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list HTTP routes: %v", err)
+	}
+	e2etest.AssertInList(t, httpRoutes.Items, httpRouteName,
+		func(r lbtypes.Httproute) string { return r.Metadata.Id }, "HTTP route")
+
 	// --- LoadBalancer ---
 	listenerName := "http"
 	routeRefs := []string{lb.L4RouteRef(routeName)}
+	httpsListenerName := "https"
+	httpRouteRefs := []string{lb.HTTPRouteRef(httpRouteName)}
 
 	t.Logf("Creating load balancer: %s", lbName)
 	_, err = loadbalancer.NewLoadBalancerBuilder(lbName).
@@ -282,6 +368,15 @@ runcmd:
 			Port:      80,
 			Protocol:  lbtypes.TCP,
 			RouteRefs: &routeRefs,
+		}).
+		WithListener(lbtypes.LoadbalancerSpecListenersItem{
+			Name:      &httpsListenerName,
+			Port:      443,
+			Protocol:  lbtypes.HTTPS,
+			RouteRefs: &httpRouteRefs,
+			Tls: &struct {
+				CertificateRef string `json:"certificateRef"`
+			}{CertificateRef: lb.LoadBalancerCertificateRef(certName)},
 		}).
 		Create(ctx, lb.LoadBalancers())
 	if err != nil {
@@ -314,7 +409,26 @@ runcmd:
 	e2etest.AssertInList(t, lbs.Items, lbName,
 		func(l lbtypes.Loadbalancer) string { return l.Metadata.Id }, "load balancer")
 
-	// --- Teardown (reverse order: LB → route → svc → pool → IP → VM → disk) ---
+	// --- HTTPS traffic through the HTTPS listener and HTTP route ---
+	t.Logf("Checking HTTPS traffic to %s", ipAddr)
+	waitForServedCert(t, ctx, ipAddr, pemFingerprint(t, certPEM))
+
+	// --- Renew the certificate in place, keeping the stored private key ---
+	_, renewedPEM, _ := selfSignedCert(t, certKey)
+	t.Logf("Renewing certificate: %s", certName)
+	if err := lb.LoadBalancerCertificates().RenewCertificate(ctx, certName, renewedPEM); err != nil {
+		t.Fatalf("failed to renew certificate: %v", err)
+	}
+	waitForServedCert(t, ctx, ipAddr, pemFingerprint(t, renewedPEM))
+	renewed, err := lb.LoadBalancerCertificates().Get(ctx, certName)
+	if err != nil {
+		t.Fatalf("failed to get renewed certificate: %v", err)
+	}
+	if got := deref(renewed.Status.PublicKeySha256Fingerprint); got != deref(cert.Status.PublicKeySha256Fingerprint) {
+		t.Errorf("renewal changed the public key fingerprint: %s -> %s", deref(cert.Status.PublicKeySha256Fingerprint), got)
+	}
+
+	// --- Teardown (reverse order: LB → routes → cert → svc → pool → IP → VM → disk) ---
 	t.Logf("Deleting load balancer: %s", lbName)
 	if err := lb.LoadBalancers().Delete(ctx, lbName); err != nil {
 		t.Fatalf("failed to delete load balancer: %v", err)
@@ -332,6 +446,24 @@ runcmd:
 		t.Fatalf("L4 route not deleted in time: %v", err)
 	}
 	routeDeleted = true
+
+	t.Logf("Deleting HTTP route: %s", httpRouteName)
+	if err := lb.HTTPRoutes().Delete(ctx, httpRouteName); err != nil {
+		t.Fatalf("failed to delete HTTP route: %v", err)
+	}
+	if err := lb.HTTPRoutes().WaitForDeleted(ctx, httpRouteName, deleteTimeout); err != nil {
+		t.Fatalf("HTTP route not deleted in time: %v", err)
+	}
+	httpRouteDeleted = true
+
+	t.Logf("Deleting certificate: %s", certName)
+	if err := lb.LoadBalancerCertificates().Delete(ctx, certName); err != nil {
+		t.Fatalf("failed to delete certificate: %v", err)
+	}
+	if err := lb.LoadBalancerCertificates().WaitForDeleted(ctx, certName, deleteTimeout); err != nil {
+		t.Fatalf("certificate not deleted in time: %v", err)
+	}
+	certDeleted = true
 
 	t.Logf("Deleting backend service: %s", svcName)
 	if err := lb.BackendServices().Delete(ctx, svcName); err != nil {
@@ -382,4 +514,93 @@ runcmd:
 	sgDeleted = true
 
 	t.Log("LoadBalancer full stack E2E test completed successfully")
+}
+
+// selfSignedCert returns a self-signed certificate for example.com, reusing key
+// when given so a renewal keeps the same public key.
+func selfSignedCert(t *testing.T, key *ecdsa.PrivateKey) (*ecdsa.PrivateKey, string, string) {
+	t.Helper()
+	if key == nil {
+		var err error
+		if key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader); err != nil {
+			t.Fatalf("generate key: %v", err)
+		}
+	}
+	serial, _ := rand.Int(rand.Reader, big.NewInt(1<<62))
+	tmpl := &x509.Certificate{
+		SerialNumber: serial,
+		Subject:      pkix.Name{CommonName: "example.com"},
+		DNSNames:     []string{"example.com"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatalf("create certificate: %v", err)
+	}
+	keyDER, err := x509.MarshalECPrivateKey(key)
+	if err != nil {
+		t.Fatalf("marshal key: %v", err)
+	}
+	return key,
+		string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})),
+		string(pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}))
+}
+
+func pemFingerprint(t *testing.T, certPEM string) string {
+	t.Helper()
+	block, _ := pem.Decode([]byte(certPEM))
+	if block == nil {
+		t.Fatal("invalid certificate PEM")
+	}
+	sum := sha256.Sum256(block.Bytes)
+	return hex.EncodeToString(sum[:])
+}
+
+// waitForServedCert polls https://ip/ until the backend answers 200 and the LB
+// presents the certificate with the given SHA-256 fingerprint.
+func waitForServedCert(t *testing.T, ctx context.Context, ip, fingerprint string) {
+	t.Helper()
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		// The certificate is self-signed; the test checks its fingerprint instead.
+		// A fresh connection per probe, so a renewed certificate is not hidden by
+		// a kept-alive TLS session.
+		Transport: &http.Transport{
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true, ServerName: "example.com"},
+			DisableKeepAlives: true,
+		},
+	}
+	deadline := time.Now().Add(httpsTimeout)
+	var last string
+	for time.Now().Before(deadline) {
+		resp, err := client.Get("https://" + ip + "/")
+		if err != nil {
+			last = err.Error()
+		} else {
+			resp.Body.Close()
+			sum := sha256.Sum256(resp.TLS.PeerCertificates[0].Raw)
+			served := hex.EncodeToString(sum[:])
+			if resp.StatusCode == http.StatusOK && served == fingerprint {
+				t.Logf("HTTPS OK, serving certificate %s", fingerprint[:16])
+				return
+			}
+			last = fmt.Sprintf("status %d, certificate %s", resp.StatusCode, served[:16])
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		case <-time.After(10 * time.Second):
+		}
+	}
+	t.Fatalf("HTTPS never served certificate %s with status 200 (last: %s)", fingerprint[:16], last)
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

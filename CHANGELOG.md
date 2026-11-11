@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-11
+
+### Breaking Changes
+- **LoadBalancer**: the SDK now targets LoadBalancer `v1alpha2`; existing resources are served unchanged by the new version
+- **LoadBalancer L4Routes**: `Spec.DefaultBackendServiceRef` is now `Spec.BackendServiceRef`, following the API
+- **LoadBalancer BackendServices**: `Spec.IpProtocolSelection` is now required and no longer a pointer; set it with `BackendServiceBuilder.WithIPProtocol`
+
+### Added
+- **LoadBalancer HTTPRoutes**: `client.LoadBalancer().HTTPRoutes()` with CRUD, `NewHTTPRouteBuilder`, waiters, `IsHTTPRouteReady` and `HTTPRouteRef`
+- **LoadBalancer Certificates**: `client.LoadBalancer().LoadBalancerCertificates()` with create/get/list/delete, `UploadContent` (certificate and private key) and `RenewCertificate` (certificate only, keeping the stored key), `NewLoadBalancerCertificateBuilder`, waiters, `IsCertificateReady` and `LoadBalancerCertificateRef`
+- **LoadBalancer listeners**: HTTP and HTTPS protocols, with `tls.certificateRef` for HTTPS termination
+
 ## [0.10.4] - 2026-11-10
 
 ### Fixed
@@ -198,7 +210,7 @@ Public release
 - End-to-end test suite for all major resources
 - Supply chain security documentation
 
-[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.10.4...HEAD
+[Unreleased]: https://github.com/evroc-oss/evroc-go-sdk/compare/v0.11.0...HEAD
 [0.4.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.0
 [0.4.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.4.1
 [0.5.1]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.5.1
@@ -217,3 +229,4 @@ Public release
 [0.10.2]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.2
 [0.10.3]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.3
 [0.10.4]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.10.4
+[0.11.0]: https://github.com/evroc-oss/evroc-go-sdk/releases/tag/v0.11.0

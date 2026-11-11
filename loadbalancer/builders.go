@@ -124,6 +124,7 @@ type BackendServiceBuilder struct {
 	healthCheck                     *lbtypes.BackendserviceSpecHealthCheck
 	healthCheckPort                 int32
 	healthCheckDisableProxyProtocol *bool
+	ipProtocol                      lbtypes.BackendserviceSpecIpProtocolSelection
 	labels                          map[string]string
 }
 
@@ -141,6 +142,13 @@ func (b *BackendServiceBuilder) WithPort(port int32) *BackendServiceBuilder {
 // WithBackendPoolRef sets the backend pool reference.
 func (b *BackendServiceBuilder) WithBackendPoolRef(ref string) *BackendServiceBuilder {
 	b.backendPoolRef = ref
+	return b
+}
+
+// WithIPProtocol sets which IP address type (IPv4 or IPv6) is used to reach
+// backends. Required by the API.
+func (b *BackendServiceBuilder) WithIPProtocol(p lbtypes.BackendserviceSpecIpProtocolSelection) *BackendServiceBuilder {
+	b.ipProtocol = p
 	return b
 }
 
@@ -212,7 +220,8 @@ func (b *BackendServiceBuilder) Build() *lbtypes.BackendserviceRequest {
 		Kind:       "BackendService",
 		Metadata:   lbtypes.RegionalMetadataRequest{Id: b.name},
 		Spec: lbtypes.BackendserviceSpec{
-			Port: b.port,
+			Port:                b.port,
+			IpProtocolSelection: b.ipProtocol,
 		},
 	}
 	if b.backendPoolRef != "" {
@@ -276,7 +285,7 @@ func (b *L4RouteBuilder) Build() *lbtypes.L4routeRequest {
 		Kind:       "L4Route",
 		Metadata:   lbtypes.RegionalMetadataRequest{Id: b.name},
 		Spec: lbtypes.L4routeSpec{
-			DefaultBackendServiceRef: b.backendServiceRef,
+			BackendServiceRef: b.backendServiceRef,
 		},
 	}
 	if len(b.labels) > 0 {
@@ -288,5 +297,100 @@ func (b *L4RouteBuilder) Build() *lbtypes.L4routeRequest {
 
 // Create builds and creates the L4Route in one call.
 func (b *L4RouteBuilder) Create(ctx context.Context, client *L4RoutesService) (*lbtypes.L4route, error) {
+	return client.Create(ctx, b.Build())
+}
+
+// HTTPRouteBuilder provides a fluent interface for constructing HttprouteRequest objects.
+type HTTPRouteBuilder struct {
+	name      string
+	hostnames []string
+	rules     []lbtypes.HttprouteSpecRulesItem
+	labels    map[string]string
+}
+
+// NewHTTPRouteBuilder creates a new builder for an HTTPRoute with the given name.
+func NewHTTPRouteBuilder(name string) *HTTPRouteBuilder {
+	return &HTTPRouteBuilder{name: name}
+}
+
+// WithHostnames limits the route to requests with matching Host headers.
+func (b *HTTPRouteBuilder) WithHostnames(hostnames ...string) *HTTPRouteBuilder {
+	b.hostnames = append(b.hostnames, hostnames...)
+	return b
+}
+
+// WithRule adds a rule that forwards matching requests to a backend service.
+// A rule without matches is a catch-all.
+func (b *HTTPRouteBuilder) WithRule(rule lbtypes.HttprouteSpecRulesItem) *HTTPRouteBuilder {
+	b.rules = append(b.rules, rule)
+	return b
+}
+
+// WithLabels sets user labels.
+func (b *HTTPRouteBuilder) WithLabels(labels map[string]string) *HTTPRouteBuilder {
+	b.labels = labels
+	return b
+}
+
+// Build creates the HttprouteRequest.
+func (b *HTTPRouteBuilder) Build() *lbtypes.HttprouteRequest {
+	req := &lbtypes.HttprouteRequest{
+		ApiVersion: builderAPIVersion,
+		Kind:       "HTTPRoute",
+		Metadata:   lbtypes.RegionalMetadataRequest{Id: b.name},
+		Spec:       lbtypes.HttprouteSpec{Rules: b.rules},
+	}
+	if len(b.hostnames) > 0 {
+		req.Spec.Hostnames = &b.hostnames
+	}
+	if len(b.labels) > 0 {
+		ul := lbtypes.UserLabels(b.labels)
+		req.Metadata.UserLabels = &ul
+	}
+	return req
+}
+
+// Create builds and creates the HTTPRoute in one call.
+func (b *HTTPRouteBuilder) Create(ctx context.Context, client *HTTPRoutesService) (*lbtypes.Httproute, error) {
+	return client.Create(ctx, b.Build())
+}
+
+// LoadBalancerCertificateBuilder provides a fluent interface for constructing
+// LoadbalancercertificateRequest objects. The certificate itself is uploaded
+// afterwards with LoadBalancerCertificatesService.UploadContent.
+type LoadBalancerCertificateBuilder struct {
+	name   string
+	labels map[string]string
+}
+
+// NewLoadBalancerCertificateBuilder creates a new builder for a LoadBalancerCertificate with the given name.
+func NewLoadBalancerCertificateBuilder(name string) *LoadBalancerCertificateBuilder {
+	return &LoadBalancerCertificateBuilder{name: name}
+}
+
+// WithLabels sets user labels.
+func (b *LoadBalancerCertificateBuilder) WithLabels(labels map[string]string) *LoadBalancerCertificateBuilder {
+	b.labels = labels
+	return b
+}
+
+// Build creates the LoadbalancercertificateRequest.
+func (b *LoadBalancerCertificateBuilder) Build() *lbtypes.LoadbalancercertificateRequest {
+	req := &lbtypes.LoadbalancercertificateRequest{
+		ApiVersion: builderAPIVersion,
+		Kind:       "LoadBalancerCertificate",
+		Metadata:   lbtypes.RegionalMetadataRequest{Id: b.name},
+		// The spec is intentionally empty, but the API requires an object, not null.
+		Spec: lbtypes.LoadbalancercertificateSpec{},
+	}
+	if len(b.labels) > 0 {
+		ul := lbtypes.UserLabels(b.labels)
+		req.Metadata.UserLabels = &ul
+	}
+	return req
+}
+
+// Create builds and creates the LoadBalancerCertificate in one call.
+func (b *LoadBalancerCertificateBuilder) Create(ctx context.Context, client *LoadBalancerCertificatesService) (*lbtypes.Loadbalancercertificate, error) {
 	return client.Create(ctx, b.Build())
 }

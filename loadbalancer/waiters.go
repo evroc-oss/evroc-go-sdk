@@ -230,3 +230,115 @@ func (s *L4RoutesService) WaitForDeleted(ctx context.Context, name string, timeo
 		return false, nil
 	})
 }
+
+// WaitForReady polls the HTTPRoute until it reaches the Ready condition or the timeout is reached.
+func (s *HTTPRoutesService) WaitForReady(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) (*lbtypes.Httproute, error) {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "httproute"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	var result *lbtypes.Httproute
+	err := rest.WaitFor(ctx, config, func() (bool, error) {
+		route, err := s.Get(ctx, name)
+		if err != nil {
+			return false, nil
+		}
+		if IsHTTPRouteReady(route) {
+			result = route
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// WaitForDeleted polls the HTTPRoute until it returns 404 (deleted) or the timeout is reached.
+func (s *HTTPRoutesService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "httproute"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
+}
+
+// WaitForReady polls the LoadBalancerCertificate until it reaches the Ready condition or the timeout is reached.
+func (s *LoadBalancerCertificatesService) WaitForReady(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) (*lbtypes.Loadbalancercertificate, error) {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "loadbalancercertificate"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	var result *lbtypes.Loadbalancercertificate
+	err := rest.WaitFor(ctx, config, func() (bool, error) {
+		route, err := s.Get(ctx, name)
+		if err != nil {
+			return false, nil
+		}
+		if IsCertificateReady(route) {
+			result = route
+			return true, nil
+		}
+		return false, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// WaitForDeleted polls the LoadBalancerCertificate until it returns 404 (deleted) or the timeout is reached.
+func (s *LoadBalancerCertificatesService) WaitForDeleted(ctx context.Context, name string, timeout time.Duration, opts ...WaiterOption) error {
+	config := rest.DefaultWaiterConfig()
+	config.Timeout = timeout
+	config.ResourceType = "loadbalancercertificate"
+	config.Metrics = s.client.metrics
+
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
+		opt(&config)
+	}
+
+	return rest.WaitFor(ctx, config, func() (bool, error) {
+		_, err := s.Get(ctx, name)
+		if errors.Is(err, rest.ErrNotFound) {
+			return true, nil
+		}
+		return false, nil
+	})
+}
